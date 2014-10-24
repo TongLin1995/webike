@@ -65,10 +65,10 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
             d[j]["CDFYs"] = myCDF
             
     
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 800/my_dpi), dpi=my_dpi) 
     
     #plt.xlabel("Date")
-    plt.ylabel("km traveled CDF")
+    plt.ylabel("cumulative km traveled")
     plt.xlabel("date")
     plt.title("km traveled per day per eBike")
     
@@ -88,10 +88,10 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
     ax.yaxis.grid(color='gray', linestyle='solid')
     
     #set axis
-    ax.set_xticklabels(Xlabs, rotation=270 )
+    ax.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),2)], rotation=270 )
     #plt.xlim(0,len(Xs))
     #plt.ylim(0,max(CumYs)+1)
-    ax.set_xticks([i for i in range(0,len(Xs))])
+    ax.set_xticks([i for i in range(0,len(Xs),2)])
     
     ax.legend(numpoints=1, loc='best',columnspacing=0,labelspacing=0,handletextpad=0,borderpad=.15,markerscale=0.8) 
 
@@ -141,11 +141,11 @@ def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         Xs.append(k)
         Xlabs.append("{0}-{1}%".format(k*10,k*10+10))
             
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("Number of Charging Events Started @ SOC")
+    plt.ylabel("# charging events started")
     plt.xlabel("SOC")
-    plt.title("Charging Event Start V.S. SOC")
+    plt.title("charging event start V.S. SOC")
         
     ax = plt.subplot(111)
         
@@ -215,9 +215,9 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     
     plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
     
-    plt.ylabel("Range (km) assuming all trips have \n identical km/%SOC efficiency to this trip")
-    plt.xlabel("Lenth of trip (km)")
-    plt.title("Percentage of battery required per km vs trip length")
+    plt.ylabel("range (km) assuming all trips have \n identical km/%SOC efficiency to this trip")
+    plt.xlabel("lenth of trip (km)")
+    plt.title("% of battery required per km vs trip length")
         
     ax = plt.subplot(111)
         
@@ -310,11 +310,11 @@ def plotChargeStartVsTime(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         cumBins.append(BINS[j] if j == 0 else cumBins[j-1] + BINS[j])
     print(BINS)
                 
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("Number Of Events Started At Time")
-    plt.xlabel("Hour of Day")
-    plt.title("Distribution of Charging Start Times")
+    plt.ylabel("# Of charging events started")
+    plt.xlabel("hour of day")
+    plt.title("distribution of charging start times")
         
     ax = plt.subplot(111)
     
@@ -337,8 +337,8 @@ def plotChargeStartVsTime(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    plt.show()
-    #plt.savefig("soc_vs_charging_events.png", format = 'png')
+    #plt.show()
+    plt.savefig("soc_vs_charging_events.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
     
 
@@ -377,10 +377,10 @@ def plotTripLengthDistributionsAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays)
 
     Xs = [i for i in range(0,11)]
             
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
-    plt.ylabel("Number of Trips")
-    plt.xlabel("Distance in km")
-    plt.title("Trip Length Distribution")
+    plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
+    plt.ylabel("number of trips")
+    plt.xlabel("distance in km")
+    plt.title("trip length distribution")
         
     ax = plt.subplot(111)
         
