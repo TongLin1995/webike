@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from compute import *
 import time
 import matplotlib as mpl
-mpl.use('Agg')
+#mpl.use('Agg')
 import matplotlib.pyplot as plt
 import SOC
 
@@ -68,9 +68,9 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
     plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
     
     #plt.xlabel("Date")
-    plt.ylabel("Cumulative km Traveled")
-    plt.xlabel("Date")
-    plt.title("km Traveled Per Day Per eBike")
+    plt.ylabel("km traveled CDF")
+    plt.xlabel("date")
+    plt.title("km traveled per day per eBike")
     
     ax = plt.subplot(111)
     
@@ -88,10 +88,10 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
     ax.yaxis.grid(color='gray', linestyle='solid')
     
     #set axis
-    ax.set_xticklabels([Xlabs[i] for i in range(0, len(Xlabs), 2)], rotation=270 )
+    ax.set_xticklabels(Xlabs, rotation=270 )
     #plt.xlim(0,len(Xs))
     #plt.ylim(0,max(CumYs)+1)
-    ax.set_xticks([i for i in range(0,len(Xs), 2)])
+    ax.set_xticks([i for i in range(0,len(Xs))])
     
     ax.legend(numpoints=1, loc='best',columnspacing=0,labelspacing=0,handletextpad=0,borderpad=.15,markerscale=0.8) 
 
@@ -149,12 +149,12 @@ def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         
     ax = plt.subplot(111)
         
-    rects = ax.bar(Xs, CumYs, color="grey",width=.5)
-    rects = ax.bar(Xs, Ys, color="black",width=.5)
+    rects = ax.bar(Xs, CumYs, color="grey",width=1)
+    rects = ax.bar(Xs, Ys, color="black",width=1)
 
     #set axis
     ax.set_xticklabels(Xlabs, rotation=270 )
-    ax.set_xticks([i+.25 for i in Xs])
+    ax.set_xticks([i+.5 for i in Xs])
  
     #make grid go behind bars
     ax.set_axisbelow(True) 
@@ -216,15 +216,15 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
     
     plt.ylabel("Range (km) assuming all trips have \n identical km/%SOC efficiency to this trip")
-    plt.xlabel("Lenth of Trip (km)")
-    plt.title("Range Estimation")
+    plt.xlabel("Lenth of trip (km)")
+    plt.title("Percentage of battery required per km vs trip length")
         
     ax = plt.subplot(111)
         
-    ax.scatter(Xs, Ys, color="grey", s=300,alpha=.5)
+    ax.scatter(Xs, Ys, color="grey", s=200)
     
     for i, txt in enumerate(Labs):
-        ax.annotate(str(int(round(txt,0))), (Xs[i],Ys[i]))
+        ax.annotate(str(int(round(txt,0))) + "%", (Xs[i],Ys[i]))
     
     
     #rects = ax.bar(Xs, Ys, color="black",width=.5)
@@ -239,18 +239,15 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     ax.xaxis.grid(color='gray', linestyle='solid')
 
     #plt.xlim(0,10)
+    #plt.ylim(0,max(Ys)+1)
     #ax.set_yticks([0.1*x*100 for x in range(0,11)])
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
     plt.savefig("empiricalrange.png", format = 'png')
-    
-    plt.ylim(0,100)
-        
-    plt.tight_layout()
-    plt.savefig("empiricalrange100.png", format = 'png')
-    
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+        
+    
     
 """detectTrips returns the start time and end time of trips. 
        the GPS is gauranteed to be valid at those times because detectTrips enforces this. 
@@ -340,9 +337,11 @@ def plotChargeStartVsTime(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    #plt.show()
-    plt.savefig("charge_start_vs_time.png", format = 'png')
+    plt.show()
+    #plt.savefig("soc_vs_charging_events.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+    
+
 
 
 
@@ -366,21 +365,17 @@ def plotTripLengthDistributionsAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays)
         if k > 10:
             Ys[10] += 1
         else:
-            Ys[int(k)] += 1
+            Ys[int(k)-1] += 1
     
     CumYs = []
     for a in range(0, len(Ys)):
         CumYs.append(Ys[0] if a == 0 else CumYs[a-1] + Ys[a])
                         
-    for i in range(0,10):
-        Xlabs.append("{0}-{1}".format(i,i+1))
+    for i in range(1,11):
+        Xlabs.append(str(i))
     Xlabs.append("11+")
 
     Xs = [i for i in range(0,11)]
-    
-    #print(Ys)
-    #print(Xlabs)
-    #print(Xs)
             
     plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
     plt.ylabel("Number of Trips")
@@ -397,10 +392,10 @@ def plotTripLengthDistributionsAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays)
     ax.yaxis.grid(color='gray', linestyle='solid')
         
     #set axis
-    ax.set_xticklabels(Xlabs, rotation=0 )
+    ax.set_xticklabels(Xlabs, rotation=0)
     ax.set_xticks([i+.5 for i in range(0,len(Xs))])
     plt.xlim(0,len(Xs))
-    plt.ylim(0,max(Ys)+1)
+    #plt.ylim(0,max(Ys)+1)
     #ax.set_yticks([0.1*x*100 for x in range(0,11)])
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
@@ -409,5 +404,7 @@ def plotTripLengthDistributionsAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays)
     plt.savefig("trip_length_distribution.png", format = 'png')
 
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+
+
 
 
