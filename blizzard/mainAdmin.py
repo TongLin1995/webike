@@ -1,0 +1,32 @@
+
+#!/usr/bin/env python2
+from datetime import datetime, timedelta
+from databaseConnector import *
+from grapher import *
+from grapherAggregateAnalyses import *
+import builtins
+import hashlib
+from User import User
+from compute import *
+import json
+
+
+dbc = databaseConnector()
+
+allIMEIs = [352308061274784, 353323057881210, 353323057976994, 353323057837303, 353323057886904, 353323057979519, 353323057849050, 353323057928508, 353323057980657, 353323057851304, 353323057928664, 353323057980665, 353323057854381, 353323057928870, 353323057981473, 353323057856089, 353323057929407, 353323058147710, 353323057856097, 353323057930587, 353323058155432, 353323057857459, 353323057930603, 353323058163014, 353323057857517, 353323057972910, 353323058163410, 353323057860636, 353323057973215, 353323058163469, 353323057860669, 353323057976473, 353323058165233]
+#allIMEIs = [353323058147710,353323058163469]
+
+#print("starting charge start vs soc")
+#plotChargeStartVsSOC(dbc,allIMEIs,9,1,14,10,22,14)
+
+#print("starting distance vs day")
+#plotDistanceVsDayAGGREGATE(dbc,allIMEIs,9,1,14,52)
+
+#plotEmpiricalRange(dbc,allIMEIs,9,1,14,10,22,14)
+
+#plotChargeStartVsTime(dbc,allIMEIs,9,1,14,10,17,14)
+
+plotTripLengthDistributionsAGGREGATE(dbc,allIMEIs,9,15,14,5)
+
+dbc.shutDown()
+

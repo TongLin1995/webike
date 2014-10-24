@@ -1,0 +1,475 @@
+from datetime import datetime, timedelta
+from compute import detectTrips, haversine
+import time
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+import io
+from urllib import request as urlreq
+import SOC
+from numpy import linspace
+
+my_dpi = 90
+
+mpl.rcParams["lines.linewidth"] = 6
+mpl.rcParams["font.size"] = 20
+mpl.rcParams["lines.linestyle"] = "-" 
+mpl.rcParams["lines.marker"] = "" 
+
+from sys import stderr
+def print_err(*args, **kwargs):
+    print(*args, file=stderr, **kwargs)
+
+
+def plotVoltage(dbc,imei,sMonth,sDay,sYear):
+    startDate = datetime(sYear,sMonth,sDay)
+    s = startDate.strftime('%y-%m-%d') + " 06:00:00"
+    e = startDate.strftime('%y-%m-%d') + " 20:59:59"
+    
+    interpolate_starts = dict()
+    interpolate_ends = dict()
+    
+    tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,s,e)
+
+    stmt = "select stamp, batteryVoltage from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and batteryVoltage is not null order by stamp".format(imei, s, e)
+        
+    Xs = []
+    Xdatetimes = []
+    Xlabs = []
+    Ys = []
+        
+    """there might not be a row where battery voltage is not null at exactly the same time as each trio start and trip end. 
+    thus, we cant just use the list of tripstarttimes and tripendtimes and find the SOC at exactly those rows. 
+    Instead, well look at all rows between each (tripstart,tripend) pair, use the earliest with a NONNULL voltage
+    as the tripStartSOC, and use the latest as the tripEndSOC."""
+    count = 0
+    for l in dbc.SQLSelectGenerator(stmt):
+        Xs.append(count)  
+        for j in range(0, len(tripStartTimes)):
+            if tripStartTimes[j] <= l[0] <= tripEndTimes[j] :
+                if j not in interpolate_starts:
+                    interpolate_starts[j] = 1000000000000
+                if j not in interpolate_ends:
+                    interpolate_ends[j] = -1
+                interpolate_starts[j] = min(interpolate_starts[j], count)
+                interpolate_ends[j] = max(interpolate_ends[j], count)          
+        Xlabs.append(l[0].strftime('%H:%M:%S'))
+        Ys.append(float(l[1]))
+        count += 1
+   
+    if (count == 0):
+        return urlreq.urlopen("http://blizzard.cs.uwaterloo.ca/~sensordc/notfound.png").read()
+    else:
+        
+        Ysmoothed = []
+    
+        for i in range(0, len(Ys)):
+           if i == 0:
+               Ysmoothed.append(Ys[i])
+           else:
+               Ysmoothed.append(.95*Ysmoothed[i-1] + .05*Ys[i-1])
+        
+        
+        #todo
+        """TODO: INSTEAD OF ASSUMING 23 DEGREES, QUERY THE BATTERY TEMPERATURE IN THE DATABASE AND USE THE CORRECT CURVE OF
+        -20,-10,0,23,45"""
+                
+        SOCEstimates = [100*i for i in SOC.returnSOCValsLinear(23,Ysmoothed)]
+        
+        """now we have to replace the portions of SOCEstimates relating to biking trips. 
+        this is because battery voltage can fluctuate violently during biking. 
+        so we will compute the SOC at trip end points and linearly intropolate during periods of biking. 
+        
+        with respect to the PADDING parameter below, the list of "tripendtimes" is not EXACTLY accurate. these
+        can be up to five minutes prior to when the bike was actually at rest. so we will actually compute the SOC
+        at 5 minutes past each trip and and linearly intropolate in there. 
+        
+        We do the same for trip starts. So we actually interpiolate in the range(5 mins before bike start, 5 mins after bike start) for each trip."""
+        PADDING = 180
+        for i in range(0, len(SOCEstimates)):
+            for k in sorted(interpolate_starts.keys()):
+                if i == interpolate_starts[k]:
+                    #this will bomb if a trip starts within 5 minutes of midnight... fixlater
+                    SOC_Start = SOCEstimates[i-PADDING]
+                    SOC_End = SOCEstimates[interpolate_ends[k]+PADDING]
+                    delta = (SOC_Start-SOC_End)/(interpolate_ends[k]-interpolate_starts[k]+PADDING + PADDING)
+                    for n in range(i-PADDING,interpolate_ends[k]+PADDING):
+                        SOCEstimates[n] = SOC_Start-delta*(n-i+PADDING)
+                    i = interpolate_ends[k] #sklip to this point to save time
+                    
+        plt.figure(1, figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi)
+        
+        plt.title("imei{0}: voltage over day".format(imei))
+        
+        ax = plt.subplot(211)
+        ax.plot(Xs,Ys,color='blue')
+        ax.plot(Xs,Ysmoothed, color='red',linestyle="-")
+        #make grid go behind bars
+        ax.set_axisbelow(True) 
+        ax.yaxis.grid(color='gray', linestyle='solid')
+        ax.xaxis.grid(color='gray', linestyle='solid')
+        plt.ylabel("voltage")
+
+        plt.xlim(0,len(Xs))
+        plt.ylim(min(Ys),max(Ys))       
+
+        ax2 = plt.subplot(212)
+        plt.ylabel("SOC Estimation")
+
+        ax2.plot(Xs,SOCEstimates, color='red')
+        #set axis
+        samplesec = 300
+        ax2.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),samplesec )], rotation=270 )
+        ax2.set_xticks([i for i in range(0,len(Xs),samplesec )])
+        plt.xlabel("time of day")
+        plt.gcf().subplots_adjust(bottom=0.5)
+
+        #make grid go behind bars
+        ax2.set_axisbelow(True) 
+        ax2.yaxis.grid(color='gray', linestyle='solid')
+        ax2.xaxis.grid(color='gray', linestyle='solid')
+        
+        plt.xlim(0,len(Xs))
+        plt.ylim(min(SOCEstimates),max(SOCEstimates))       
+
+        plt.tight_layout()
+        buf = io.BytesIO()
+        plt.savefig(buf, format = 'png')
+        plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+        buf.seek(0)
+        return buf.read() 
+            
+
+def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
+    curDate = datetime(2000+sYear,sMonth,sDay)
+    end = curDate+timedelta(hours=23, minutes=59,seconds=59)
+    tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)  
+    
+    if len(tripStartTimes) == 0:
+        return urlreq.urlopen("http://blizzard.cs.uwaterloo.ca/~sensordc/notfound.png").read()
+    else:
+        Xs = []
+        Ys = []
+        
+        Ycounts = []
+        Xlabs = []
+        for i in range(0, len(tripStartTimes)):
+            Xlabs.append("{0} ->\n{1}".format(tripStartTimes[i].strftime('%H:%M:%S'), tripEndTimes[i].strftime('%H:%M:%S')))
+            Xs.append(i) 
+            Ys.append(dists[i])
+
+        plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+        
+        plt.ylabel("trip km")
+        plt.xlabel("trip start/stop time ")
+        plt.title("imei{0}:\n km traveled".format(imei))
+        
+        ax = plt.subplot(111)
+        
+        #plot
+        rects = ax.bar(Xs, Ys, color="black",width=.5)
+        
+        #make grid go behind bars
+        ax.set_axisbelow(True) 
+        ax.yaxis.grid(color='gray', linestyle='solid')
+        
+        #set axis
+        ax.set_xticklabels(Xlabs, rotation=0 ) ;
+        plt.xlim(0,len(Xs))
+        plt.ylim(0,max(Ys)+1)
+        ax.set_xticks([i+.25 for i in range(0,len(Xs))])
+        #ax.set_yticks([0.1*x*100 for x in range(0,11)])
+        #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
+        
+        plt.tight_layout()
+        #plt.show()
+        
+        buf = io.BytesIO()
+        plt.savefig(buf, format = 'png')
+        plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+        buf.seek(0)
+        return buf.read() 
+          
+
+
+def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
+    curDate = datetime(2000+sYear,sMonth,sDay)
+    end = curDate+timedelta(hours=23, minutes=59,seconds=59)
+    stmt = "select * from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null order by stamp".format(imei, curDate, end)
+      
+    lastRow = ""
+    lastRowTime = ""
+    
+    Xs = []
+    Ys = []
+    Xlabs = []
+    count = 0
+    for l in dbc.SQLSelectGenerator(stmt):
+        if l is not None:
+            if lastRow == "" :
+                lastRow = l
+                lastRowTime = l[0]
+            else:
+                TIMELAPSE = (l[0]-lastRowTime).total_seconds() #in seconds
+                if (TIMELAPSE >= 20): #only consider rows 10 seconds apart    
+                    d = haversine(l[3],lastRow[3], l[4], lastRow[4])
+                    kmph = d*(3600/TIMELAPSE) #if we go d in timelapse, then we can go d times this in an hour
+                    if kmph > 5:
+                        Xs.append(count)
+                        count += 1
+                        Ys.append(kmph)
+                        Xlabs.append(l[0].strftime('%H:%M:%S'))
+                    lastRow = l
+                    lastRowTime = l[0]
+    
+    if (count == 0):
+        return urlreq.urlopen("http://blizzard.cs.uwaterloo.ca/~sensordc/notfound.png").read()
+    else:
+        plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+        #plt.xlabel("Date")
+        plt.ylabel("kmph")
+        plt.title("imei{0}: speed over day; only non-zero speed times shown".format(imei))
+        
+        ax = plt.subplot(111)
+    
+        ax.plot(Xs,Ys,color='blue')
+        #ax.plot(Xs,Ysmoothed, color='red')
+              
+        #make grid go behind bars
+        ax.set_axisbelow(True) 
+        ax.yaxis.grid(color='gray', linestyle='solid')
+        ax.xaxis.grid(color='gray', linestyle='solid')
+    
+        #set axis
+        samplesec = 1
+        ax.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),samplesec )], rotation=270 )
+        ax.set_xticks([i for i in range(0,len(Xs),samplesec )])
+    
+        plt.xlim(0,len(Xs))
+        plt.ylim(23,max(Ys))
+        #ax.set_yticks([0.1*x*100 for x in range(0,11)])
+        #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
+        
+        plt.tight_layout()
+        
+        buf = io.BytesIO()
+        plt.savefig(buf, format = 'png')
+        plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+        buf.seek(0)
+        return buf.read() 
+    
+
+
+
+def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
+    curDate = datetime(2000+sYear,sMonth,sDay)
+    end = curDate+timedelta(days=numdays, hours=23, minutes=59,seconds=59)
+    tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)  
+    if len(tripStartTimes) == 0:  
+        return urlreq.urlopen("http://blizzard.cs.uwaterloo.ca/~sensordc/notfound.png").read()
+    else:
+        Xs = []
+        Xlabs = []  
+        Ys = [0,0,0,0,0,0,0,0,0,0]  
+        
+        for k in dists:
+            if k > 45:
+                Ys[9] += 1
+            else:
+                Ys[int(k / 5)] += 1
+                    
+        for i in range(0,10):
+            Xlabs.append("{0}-{1}".format(i*5,i*5+5))
+            Xs.append(i)
+            
+        plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+        
+        #plt.xlabel("Date")
+        plt.ylabel("Number of Trips")
+        plt.xlabel("Distance in km")
+        plt.title("imei{0}:\n trip length distribution".format(imei))
+        
+        ax = plt.subplot(111)
+        
+        #plot
+        rects = ax.bar(Xs, Ys, color="black",width=.5)
+        #ax.bar(Xs, Ys, color="black",width=.5)
+        
+        #label with number of valid rows
+        #def autolabel(rects, whicharr):
+        #    for x in range (0, len(rects)):
+        #        height = 0 #might worki with maxYs
+        #        ax.text(rects[x].get_x()+rects[x].get_width()/2, 1.01*height, "{0}".format(whicharr[x]), ha='center', va='bottom', color='red',rotation=270)
+        #autolabel(rects,Ycounts)
+        
+        #make grid go behind bars
+        ax.set_axisbelow(True) 
+        ax.yaxis.grid(color='gray', linestyle='solid')
+        
+        #set axis
+        ax.set_xticklabels(Xlabs, rotation=0 )
+        ax.set_xticks([i+.25 for i in range(0,len(Xs))])
+        plt.xlim(0,len(Xs))
+        plt.ylim(0,max(Ys)+1)
+        #ax.set_yticks([0.1*x*100 for x in range(0,11)])
+        #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
+        
+        plt.tight_layout()
+        #plt.show()
+        
+        buf = io.BytesIO()
+        plt.savefig(buf, format = 'png')
+        plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+        buf.seek(0)
+        return buf.read() 
+          
+      
+      
+
+
+
+def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
+    curDate = datetime(2000+sYear,sMonth,sDay)
+    Xs = [i for i in range(0,numDays)]
+    Xlabs = []
+    Ycounts = []
+    Ys = []
+    CumYs = []
+    for i in range(0,numDays):
+        Xlabs.append(curDate.strftime('%y/%m/%d'))
+        end = curDate+timedelta(hours=23, minutes=59,seconds=59)
+        tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)
+        dday = 0
+        cday = 0
+        for j in dists:
+            dday += j
+        
+        Ys.append(dday)
+        Ycounts.append(cday)
+        CumYs.append(dday if i == 0 else dday+CumYs[i-1])
+        curDate = curDate+timedelta(days=1)
+  
+    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    
+    #plt.xlabel("Date")
+    plt.ylabel("km traveled \n(gray = CDF)")
+    plt.title("imei{0}:\n km traveled".format(imei))
+    
+    ax = plt.subplot(111)
+    
+    #plot the two bars
+    ax.bar(Xs,CumYs, color="grey",width=1)
+    rects = ax.bar(Xs, Ys, color="black",width=1)
+
+    #make grid go behind bars
+    ax.set_axisbelow(True) 
+    ax.yaxis.grid(color='gray', linestyle='solid')
+    
+    #set axis
+    ax.set_xticklabels(Xlabs, rotation=270 ) ;
+    plt.xlim(0,len(Xs))
+    plt.ylim(0,max(CumYs)+1)
+    ax.set_xticks([i+.5 for i in range(0,len(Xs))])
+    
+    plt.tight_layout()
+    #plt.show()
+    
+    buf = io.BytesIO()
+    plt.savefig(buf, format = 'png')
+    plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+    buf.seek(0)
+    return buf.read() 
+
+
+
+
+
+"""google maps"""   
+def plotDay(dbc,imei,sYear,sMonth,sDay):
+        
+    startDate = datetime(sYear,sMonth,sDay)
+    s = startDate.strftime('%y-%m-%d') + " 00:00:00"
+    e = startDate.strftime('%y-%m-%d') + " 23:59:59"
+    stmt = "select * from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null order by stamp".format(imei, s, e)
+        
+    import simplekml
+    kml = simplekml.Kml()
+    
+    #This results in a single styles
+    fol = kml.newfolder(name="temp")
+    style = simplekml.Style()
+    style.labelstyle.color = simplekml.Color.red  # Make the text red
+    style.labelstyle.scale = 2  # Make the text twice as big
+    style.iconstyle.icon.href = 'http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png'
+
+    lastRow = ""
+    lastRowTime = ""
+    lastTrip = "1"
+    for l in dbc.SQLSelectGenerator(stmt):
+        print(l)
+        if l is not None and abs(l[3]) > 1 and abs(l[4]) > 1:
+            if lastRow == "" :
+                lastRow = l
+                lastRowTime = l[0]
+            elif ((l[0]-lastRowTime).total_seconds() >= 10): #only consider rows 10 seconds apart  
+                lastTrip = ("2" if lastTrip == "1" else "1")
+                pnt = fol.newpoint(name=lastTrip, coords=[(l[4],l[3])])#KML requires long, lat
+                pnt.style = style#(sharedstyle1 if lastTrip == "1" else sharedstyle2)
+                lastRow = l
+                lastRowTime = l[0]
+    kml.save("/Users/tcarpent/Desktop/test16.kml")    
+ 
+ 
+def showSOCEstimates():
+   """#this shows an example of my SOC model for a linspace of voltages vs the original graphs"""   
+   """this is primarilty to produce a figure in my thesis. THis is NOT NEEDED ON BLIZZARD.""" 
+   plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+        
+        
+   #plot1; the original battery graphs recieved from OEM     
+   ax = plt.subplot(211)
+   ax.plot(SOC.d["-20"]["Ys"], SOC.d["-20"]["Xs"], color='blue',label="-20C")
+   ax.plot(SOC.d["-10"]["Ys"] ,SOC.d["-10"]["Xs"], color='cyan',label="-10C")
+   ax.plot(SOC.d["0"]["Ys"] ,SOC.d["0"]["Xs"],   color='green',label="0C")
+   ax.plot(SOC.d["23"]["Ys"] ,SOC.d["23"]["Xs"], color='yellow',label="23C")
+   ax.plot(SOC.d["45"]["Ys"] ,SOC.d["45"]["Xs"], color='pink',label="45C")
+   ax.set_axisbelow(True) 
+   #ax.legend(numpoints=1, ncol = 1, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
+   plt.ylim(16000,0)
+   ax.yaxis.grid(color='gray', linestyle='solid')
+   ax.xaxis.grid(color='gray', linestyle='solid')
+   plt.ylabel("capacity in mAh")
+   plt.title("voltage vs capacity")
+
+   """#plot1; the original battery graphs recieved from OEM     
+   ax2 = plt.subplot(312)
+   ax2.plot(SOC.d["-20"]["Ys"], SOC.returnSOCVals3Line(-20,SOC.d["-20"]["Ys"]), color='blue',label="-20C")
+   ax2.plot(SOC.d["-10"]["Ys"] ,SOC.returnSOCVals3Line(-10,SOC.d["-10"]["Ys"]), color='cyan',label="-10C")
+   ax2.plot(SOC.d["0"]["Ys"] , SOC.returnSOCVals3Line(0,SOC.d["0"]["Ys"]),   color='green',label="0C")
+   ax2.plot(SOC.d["23"]["Ys"] ,SOC.returnSOCVals3Line(23,SOC.d["23"]["Ys"]), color='yellow',label="23C")
+   ax2.plot(SOC.d["45"]["Ys"], SOC.returnSOCVals3Line(45,SOC.d["45"]["Ys"]), color='pink',label="45C")
+   ax2.set_axisbelow(True) 
+   #ax2.legend(numpoints=1, ncol = 1, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
+   #plt.ylim(16000,0)
+   ax2.yaxis.grid(color='gray', linestyle='solid')
+   ax2.xaxis.grid(color='gray', linestyle='solid')
+   plt.ylabel("SOC (% of wh)")"""
+
+   ax3 = plt.subplot(212)
+   SampVs = linspace(32,16,100)
+   ax3.plot(SampVs,SOC.returnSOCValsLinear(-20, SampVs), color='blue',label="-20C")
+   ax3.plot(SampVs,SOC.returnSOCValsLinear(-10, SampVs), color='cyan',label="-10C")
+   ax3.plot(SampVs,SOC.returnSOCValsLinear(0, SampVs), color='green',label="0C")
+   ax3.plot(SampVs,SOC.returnSOCValsLinear(23, SampVs), color='yellow',label="23C")
+   ax3.plot(SampVs,SOC.returnSOCValsLinear(45, SampVs), color='pink',label="45C")
+   ax3.legend(numpoints=1, ncol = 3, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
+   #plt.ylim(0,1)
+   ax3.yaxis.grid(color='gray', linestyle='solid')
+   ax3.xaxis.grid(color='gray', linestyle='solid')   
+   plt.xlabel("voltage")
+   plt.ylabel("SOC (% of wh)")
+
+   plt.show()    
+   plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+
+

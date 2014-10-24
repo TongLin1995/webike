@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Data Dashboard</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../~sensordc/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../~sensordc/bootstrap/css/jumbotron.css" rel="stylesheet">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDY0kkJiTPVd2U7aTOAwhc9ySH6oHxOIYM&sensor=false"></script>    
+    <script>
+
+	function changeImage(which)
+	{
+		if(which == 1)
+		{
+			var start = document.getElementsByName('date1')[0].value; 
+			var locationString = "/webike/plotTripsOnDay?imei=" + {{ i }} + "&s=" + start;
+		}
+		if(which == 2)
+		{
+			var start = document.getElementsByName('date2')[0].value; 
+			var numdays = document.getElementsByName('ndays')[0].value; 
+			var locationString = "/webike/plotDistanceVsDay?imei=" + {{i}} + "&s=" + start + "&nd=" + numdays;
+		}
+		if(which == 3)
+		{
+			var start = document.getElementsByName('date3')[0].value; 
+			var locationString = "/webike/voltageOverTime?imei=" + {{ i }} + "&s=" + start;
+		}
+		if(which == 4)
+		{
+			var start = document.getElementsByName('date4')[0].value; 
+			var numdays = document.getElementsByName('ndays2')[0].value; 
+			var locationString = "/webike/plotTripLengthDistribution?imei=" + {{i}} + "&s=" + start + "&nd=" + numdays;
+		}
+		if(which == 5)
+		{
+			var start = document.getElementsByName('date5')[0].value; 
+			var locationString = "/webike/plotSpeedOnDay?imei=" + {{ i }} + "&s=" + start;
+		}
+		if(which == 6)
+		{
+            $.get(
+                    "/webike/getCoordsForGoogle",
+                    {date: document.getElementsByName('date6')[0].value, imei: {{ i }}},
+                    function(data) {
+                        document.getElementById('map').style.display = 'block';
+                        document.getElementById('mainimage').style.display = 'none';
+                        var json = data;
+                        obj = JSON.parse(json);
+                        var map = new google.maps.Map(document.getElementById('map'), {
+                         zoom: 12,
+                         center: new google.maps.LatLng(43.472285, -80.544858),
+                         mapTypeId: google.maps.MapTypeId.ROADMAP
+                        });
+                        var marker, i;
+                        for (i = 0; i < obj["lats"].length; i++) {
+                         marker = new google.maps.Marker({
+                             position: new google.maps.LatLng(obj["lats"][i], obj["longs"][i]),
+                             map: map
+                         });
+                       
+                        }
+                       
+                });
+		}
+		
+		if(which != 6)
+		{
+			$('#mainImageinside').attr('src', locationString);
+		    document.getElementById('map').style.display = 'none';
+            document.getElementById('mainimage').style.display = 'block';
+		}
+		
+		
+	}
+	</script>
+
+</script>
+
+
+        
+  </head>
+
+  <body>
+
+	<div style="width: 2000px; height: 50px;">
+	</div>
+	
+	
+	<div class="container">
+  	<div class="jumbotron text-center">
+    	<h1>{{name}}'s Dashboard</h1>
+    	<p class="lead">Use this dashboard to visualize your hard work!</p>
+    </div>
+  
+    <div class="row">
+    
+   		<div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+    	 <h2>Trips On Day</h2>          
+         	  mm/dd/yy: <input type="text" name="date1" id="date1" value=""><br><br>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(1)">Generate!</a>
+  		</div>
+   		</div>
+  
+  
+     <div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+     		<h2>Biking Per Day</h2>          
+          		mm/dd/yy:<input type="text" name="date2" id="date2" value="">
+      			Num Days:<input type="text" name="ndays" id="ndays" value="">
+      			<br>
+      		<a class="btn btn-large btn-success" onclick="changeImage(2)">Generate!</a><br>
+  		</div>
+   	</div>
+
+   		<div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+    	 <h2>Battery Life on Day</h2>          
+         	  mm/dd/yy: <input type="text" name="date3" id="date3" value=""><br><br>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(3)">Generate!</a>
+  		</div>
+   		</div>
+      </div>
+
+    <div class="row">
+      
+      
+     <div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+     		<h2>Trip Distribution</h2>          
+          		mm/dd/yy:<input type="text" name="date4" id="date4" value="">
+      			Num Days:<input type="text" name="ndays2" id="ndays2" value="">
+      			<br>
+      		<a class="btn btn-large btn-success" onclick="changeImage(4)">Generate!</a><br>
+  		</div>
+   	</div>
+
+   		<div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+    	 <h2>Speed On Day</h2>          
+         	  mm/dd/yy: <input type="text" name="date5" id="date5" value=""><br><br>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(5)">Generate!</a>
+  		</div>
+   		</div>
+
+      
+   		<div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+    	 <h2>Google Maps</h2>          
+         	  mm/dd/yy: <input type="text" name="date6" id="date6" value=""><br><br>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(6)">Generate!</a>
+  		</div>
+   		</div>
+   		
+      </div>
+            
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+          <div id="map" style="display: none; width:1080px; height:600px;"></div>
+          <div id = "mainimage" class="text-center"  style="display: none; width:1080px; height:900px;">
+          	<img id="mainImageinside" class="text-center" style="width:1080px; height:900px;">
+     	  </div>
+
+  </body>
+</html>
+
