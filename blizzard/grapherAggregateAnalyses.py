@@ -145,7 +145,7 @@ def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         
     plt.ylabel("# charging events started")
     plt.xlabel("SOC")
-    plt.title("charging event start V.S. SOC")
+    plt.title("charging event start v.s. SOC")
         
     ax = plt.subplot(111)
         
@@ -166,7 +166,7 @@ def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    plt.savefig("soc_vs_charging_events.png", format = 'png')
+    plt.savefig("charge_start_vs_soc.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
 
@@ -312,7 +312,7 @@ def plotChargeStartVsTime(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
                 
     plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("# Of charging events started")
+    plt.ylabel("# charging events started")
     plt.xlabel("hour of day")
     plt.title("distribution of charging start times")
         
@@ -338,7 +338,7 @@ def plotChargeStartVsTime(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         
     plt.tight_layout()
     #plt.show()
-    plt.savefig("soc_vs_charging_events.png", format = 'png')
+    plt.savefig("charge_start_vs_time.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
     
 
