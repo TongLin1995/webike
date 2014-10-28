@@ -208,7 +208,7 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     Labs = []
     
     for z in range(0, len(allTripDists)):
-        if alltripSOCDeltas[z] > 0 and allTripDists[z] >= 2 :
+        if alltripSOCDeltas[z] > 10 and allTripDists[z] >= 2 :
             Xs.append(allTripDists[z])
             Ys.append(allTripDists[z]*(100/alltripSOCDeltas[z]))
             Labs.append(alltripSOCDeltas[z])
@@ -224,7 +224,7 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     ax.scatter(Xs, Ys, color="grey", s=200)
     
     for i, txt in enumerate(Labs):
-        ax.annotate(str(int(round(txt,0))) + "%", (Xs[i],Ys[i]))
+        ax.annotate(str(int(round(txt,0))), (Xs[i],Ys[i]))
     
     
     #rects = ax.bar(Xs, Ys, color="black",width=.5)

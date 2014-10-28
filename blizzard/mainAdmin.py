@@ -22,9 +22,9 @@ allIMEIs = [352308061274784, 353323057881210, 353323057976994, 353323057837303, 
 #print("starting distance vs day")
 #plotDistanceVsDayAGGREGATE(dbc,allIMEIs,9,1,14,53)
 
-#plotEmpiricalRange(dbc,allIMEIs,9,1,14,10,22,14)
+plotEmpiricalRange(dbc,allIMEIs,9,1,14,10,26,14)
 
-plotChargeStartVsTime(dbc,allIMEIs,9,1,14,10,23,14)
+#plotChargeStartVsTime(dbc,allIMEIs,9,1,14,10,23,14)
 
 #plotTripLengthDistributionsAGGREGATE(dbc,allIMEIs,9,1,14,53)
 
