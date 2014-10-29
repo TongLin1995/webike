@@ -74,7 +74,7 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
         """TODO: INSTEAD OF ASSUMING 23 DEGREES, QUERY THE BATTERY TEMPERATURE IN THE DATABASE AND USE THE CORRECT CURVE OF
         -20,-10,0,23,45"""
                 
-        SOCEstimates = [100*i for i in SOC.returnSOCValsLinear(23,Ysmoothed)]
+        SOCEstimates = [100*i for i in SOC.returnSOCVals3Line(23,Ysmoothed)]
         
         """now we have to replace the portions of SOCEstimates relating to biking trips. 
         this is because battery voltage can fluctuate violently during biking. 
