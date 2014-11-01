@@ -118,13 +118,17 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         print(chargeEndTimes)
         print("\n")
         print(chargeStartVolts)"""
-        for s in chargeStartVolts:
-             allChargeStartVoltages.append(s)
-        for e in chargeEndVolts:
-             allChargeEndVoltages.append(e)
+        for s in range(0, len(chargeStartVolts)):
+            if chargeStartVolts[s] is not None and chargeEndVolts[s] is not None and chargeEndVolts[s] >= chargeStartVolts[s]:
+                allChargeStartVoltages.append(chargeStartVolts[s])
+                allChargeEndVoltages.append(chargeEndVolts[s])
     
-    print(allChargeEndVoltages)    
+    #print(allChargeEndVoltages)    
     #print(allChargeStartVoltages)
+    #print(len(allChargeEndVoltages))
+    #print(len(allChargeStartVoltages))
+    
+    
     SOCEstimatesStart = [100*i for i in SOC.returnSOCValsLinear(23,allChargeStartVoltages)]
     SOCEstimatesEnd= [100*i for i in SOC.returnSOCValsLinear(23,allChargeEndVoltages)]
     
