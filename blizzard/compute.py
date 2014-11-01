@@ -106,12 +106,16 @@ def detectChargingEvents(dbc,imei,startDate,endDate):
     chargingStart = 0
     chargingEnd = 0
     chargingStartVoltage = 0
+    chargingEndVoltage = 0
     secondsSinceLastSignifigantMovement = 0
     #tripDist = 0
+    
     
     chargeStartTimes = []
     chargeEndTimes = []
     chargeStartVolts = []
+    chargeEndVolts= []
+    
     
     for l in dbc.SQLSelectGenerator(stmt):
         if l is not None:
@@ -127,10 +131,12 @@ def detectChargingEvents(dbc,imei,startDate,endDate):
                   chargeStartTimes.append(chargingStart)
                   chargeEndTimes.append(chargingEnd)
                   chargeStartVolts.append(chargingStartVoltage)
+                  chargeEndVolts.append(chargingEndVoltage)
                chargingHasStarted = 0
                chargingStart = 0
                chargingEnd = 0
                chargingStartVoltage = 0
+               chargingEndVoltage = 0
                secondsSinceLastSignifigantMovement = 0
                lastRow = l
                lastRowTime = l[0]
@@ -143,6 +149,7 @@ def detectChargingEvents(dbc,imei,startDate,endDate):
                        chargingStart = l[0]
                        chargingStartVoltage = l[2]
                    chargingEnd = l[0] #this will get updated if its a real trip
+                   chargingEndVoltage = l[2]
 
                else:
                     if chargingHasStarted == 1: #did not move in last minute which we care about if we are on a trip
@@ -153,14 +160,17 @@ def detectChargingEvents(dbc,imei,startDate,endDate):
                                chargeStartTimes.append(chargingStart)
                                chargeEndTimes.append(chargingEnd)
                                chargeStartVolts.append(chargingStartVoltage)
+                               chargeEndVolts.append(chargingEndVoltage)
                             chargingHasStarted = 0
                             chargingStart = 0
                             chargingEnd = 0
                             chargingStartVoltage = 0
+                            chargingEndVoltage = 0
                             secondsSinceLastSignifigantMovement = 0
                lastRow = l
                lastRowTime = l[0]
-    return chargeStartTimes, chargeEndTimes, chargeStartVolts
+    print(chargeEndVolts)
+    return chargeStartTimes, chargeEndTimes, chargeStartVolts, chargeEndVolts
 
 
 

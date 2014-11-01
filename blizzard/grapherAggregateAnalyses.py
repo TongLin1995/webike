@@ -102,37 +102,52 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
 
 
 
-def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
+def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     
     allChargeStartVoltages = []
+    allChargeEndVoltages = []
     
     #build the X list which is the same for all IMEIs
     sDate = datetime(2000+sYear,sMonth,sDay,0,0,0)
     eDate = datetime(2000+eYear,eMonth,eDay,23,23,59)
     
     for i in imeiList:
-        chargeStartTimes, chargeEndTimes, chargeStartVolts = detectChargingEvents(dbc,i,sDate,eDate)
+        chargeStartTimes, chargeEndTimes, chargeStartVolts, chargeEndVolts = detectChargingEvents(dbc,i,sDate,eDate)
         """print(chargeStartTimes)
         print("\n")
         print(chargeEndTimes)
         print("\n")
         print(chargeStartVolts)"""
-        for c in chargeStartVolts:
-             allChargeStartVoltages.append(c)
+        for s in chargeStartVolts:
+             allChargeStartVoltages.append(s)
+        for e in chargeEndVolts:
+             allChargeEndVoltages.append(e)
     
+    print(allChargeEndVoltages)    
     #print(allChargeStartVoltages)
-    SOCEstimates = [100*i for i in SOC.returnSOCValsLinear(23,allChargeStartVoltages)]
-    #print(SOCEstimates)
-    
+    SOCEstimatesStart = [100*i for i in SOC.returnSOCValsLinear(23,allChargeStartVoltages)]
+    SOCEstimatesEnd= [100*i for i in SOC.returnSOCValsLinear(23,allChargeEndVoltages)]
     
     Ys = [0,0,0,0,0,0,0,0,0,0]  
+    Ys2 = [0,0,0,0,0,0,0,0,0,0]  
     CumYs = []  
-
-    for k in SOCEstimates:
-        Ys[int(k / 10)] += 1
+    CumYs2 = []
+    
+    for k in SOCEstimatesStart:
+        try:
+            Ys[int(k / 10) if k < 100 else 9] += 1
+        except:
+            print(k)
+            
+    for k in SOCEstimatesEnd:
+        try:
+            Ys2[int(k / 10) if k < 100 else 9] += 1
+        except:
+            print(k)      
     
     for aaa in range(0,10):
         CumYs.append(Ys[0] if aaa == 0 else CumYs[aaa-1] + Ys[aaa])
+        CumYs2.append(Ys2[0] if aaa == 0 else CumYs2[aaa-1] + Ys2[aaa])
     
     Xs = []
     Xlabs = []   
@@ -141,11 +156,11 @@ def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         Xs.append(k)
         Xlabs.append("{0}-{1}%".format(k*10,k*10+10))
             
-    plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("# charging events started")
+    plt.ylabel("Number of Charging Events Started @ SOC")
     plt.xlabel("SOC")
-    plt.title("charging event start v.s. SOC")
+    plt.title("Charging Event Start V.S. SOC")
         
     ax = plt.subplot(111)
         
@@ -166,8 +181,43 @@ def plotChargeStartVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    plt.savefig("charge_start_vs_soc.png", format = 'png')
+    plt.savefig("soc_vs_charging_events.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+
+
+
+    #NOW SHOW THE ENDING SOC GRAPH
+
+
+
+    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+        
+    plt.ylabel("Charging Events Ending @ SOC")
+    plt.xlabel("SOC")
+    plt.title("Charging Event End V.S. SOC")
+        
+    ax = plt.subplot(111)
+        
+    rects = ax.bar(Xs, CumYs2, color="grey",width=1)
+    rects = ax.bar(Xs, Ys2, color="black",width=1)
+
+    #set axis
+    ax.set_xticklabels(Xlabs, rotation=270 )
+    ax.set_xticks([i+.5 for i in Xs])
+ 
+    #make grid go behind bars
+    ax.set_axisbelow(True) 
+    ax.yaxis.grid(color='gray', linestyle='solid')
+        
+    plt.xlim(0,10)
+    #plt.ylim(0,max(Ys)+1)
+    #ax.set_yticks([0.1*x*100 for x in range(0,11)])
+    #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
+        
+    plt.tight_layout()
+    plt.savefig("soc_vs_charging_events_end.png", format = 'png')
+    plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+
 
 
 
