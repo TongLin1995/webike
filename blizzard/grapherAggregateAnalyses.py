@@ -113,21 +113,10 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     
     for i in imeiList:
         chargeStartTimes, chargeEndTimes, chargeStartVolts, chargeEndVolts = detectChargingEvents(dbc,i,sDate,eDate)
-        """print(chargeStartTimes)
-        print("\n")
-        print(chargeEndTimes)
-        print("\n")
-        print(chargeStartVolts)"""
         for s in range(0, len(chargeStartVolts)):
             if chargeStartVolts[s] is not None and chargeEndVolts[s] is not None and chargeEndVolts[s] >= chargeStartVolts[s]:
                 allChargeStartVoltages.append(chargeStartVolts[s])
                 allChargeEndVoltages.append(chargeEndVolts[s])
-    
-    #print(allChargeEndVoltages)    
-    #print(allChargeStartVoltages)
-    #print(len(allChargeEndVoltages))
-    #print(len(allChargeStartVoltages))
-    
     
     SOCEstimatesStart = [100*i for i in SOC.returnSOCValsLinear(23,allChargeStartVoltages)]
     SOCEstimatesEnd= [100*i for i in SOC.returnSOCValsLinear(23,allChargeEndVoltages)]
@@ -138,17 +127,11 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     CumYs2 = []
     
     for k in SOCEstimatesStart:
-        try:
-            Ys[int(k / 10) if k < 100 else 9] += 1
-        except:
-            print(k)
+        Ys[int(k / 10) if k < 100 else 9] += 1
             
     for k in SOCEstimatesEnd:
-        try:
-            Ys2[int(k / 10) if k < 100 else 9] += 1
-        except:
-            print(k)      
-    
+        Ys2[int(k / 10) if k < 100 else 9] += 1
+     
     for aaa in range(0,10):
         CumYs.append(Ys[0] if aaa == 0 else CumYs[aaa-1] + Ys[aaa])
         CumYs2.append(Ys2[0] if aaa == 0 else CumYs2[aaa-1] + Ys2[aaa])
@@ -262,7 +245,7 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     Labs = []
     
     for z in range(0, len(allTripDists)):
-        if alltripSOCDeltas[z] > 10 and allTripDists[z] >= 2 :
+        if alltripSOCDeltas[z] >= 5 and allTripDists[z] >= 2 :
             Xs.append(allTripDists[z])
             Ys.append(allTripDists[z]*(100/alltripSOCDeltas[z]))
             Labs.append(alltripSOCDeltas[z])
@@ -356,13 +339,12 @@ def plotChargeStartVsTime(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     cumBins = []
     
     for i in imeiList:
-        chargeStartTimes, chargeEndTimes, chargeStartVolts = detectChargingEvents(dbc,i,sDate,eDate)
+        chargeStartTimes, chargeEndTimes, chargeStartVolts, chargeEndVolts = detectChargingEvents(dbc,i,sDate,eDate)
         for c in chargeStartTimes:
              BINS[int(c.strftime('%H'))] += 1
 
     for j in range(0, len(BINS)):
         cumBins.append(BINS[j] if j == 0 else cumBins[j-1] + BINS[j])
-    print(BINS)
                 
     plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
