@@ -123,8 +123,6 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         for e in chargeEndVolts:
              allChargeEndVoltages.append(e)
     
-    print(allChargeEndVoltages)    
-    #print(allChargeStartVoltages)
     SOCEstimatesStart = [100*i for i in SOC.returnSOCValsLinear(23,allChargeStartVoltages)]
     SOCEstimatesEnd= [100*i for i in SOC.returnSOCValsLinear(23,allChargeEndVoltages)]
     
