@@ -169,7 +169,6 @@ def detectChargingEvents(dbc,imei,startDate,endDate):
                             secondsSinceLastSignifigantMovement = 0
                lastRow = l
                lastRowTime = l[0]
-    print(chargeEndVolts)
     return chargeStartTimes, chargeEndTimes, chargeStartVolts, chargeEndVolts
 
 
