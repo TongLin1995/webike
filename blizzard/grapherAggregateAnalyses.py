@@ -145,7 +145,7 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
             
     plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("Number of Charging Events Started @ SOC")
+    plt.ylabel("Number of Charging \n Events Started @ SOC")
     plt.xlabel("SOC")
     plt.title("Charging Event Start V.S. SOC")
         
@@ -177,7 +177,7 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
 
 
 
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
     plt.ylabel("Charging Events Ending @ SOC")
     plt.xlabel("SOC")
