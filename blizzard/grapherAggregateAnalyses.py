@@ -250,7 +250,7 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
             Ys.append(allTripDists[z]*(100/alltripSOCDeltas[z]))
             Labs.append(alltripSOCDeltas[z])
     
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 1080/my_dpi), dpi=my_dpi) 
     
     plt.ylabel("range (km) assuming all trips have \n identical km/%SOC efficiency to this trip")
     plt.xlabel("lenth of trip (km)")

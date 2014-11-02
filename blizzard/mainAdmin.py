@@ -19,13 +19,13 @@ allIMEIs = [352308061274784, 353323057881210, 353323057976994, 353323057837303, 
 plotChargeVsSOC(dbc,allIMEIs,9,1,14,10,31,14)
 
 #print("starting distance vs day")
-#plotDistanceVsDayAGGREGATE(dbc,allIMEIs,9,1,14,61)
+plotDistanceVsDayAGGREGATE(dbc,allIMEIs,9,1,14,61)
 
-#plotEmpiricalRange(dbc,allIMEIs,9,1,14,10,31,14)
+plotEmpiricalRange(dbc,allIMEIs,9,1,14,10,31,14)
 
-#plotChargeStartVsTime(dbc,allIMEIs,9,1,14,10,31,14)
+plotChargeStartVsTime(dbc,allIMEIs,9,1,14,10,31,14)
 
-#plotTripLengthDistributionsAGGREGATE(dbc,allIMEIs,9,1,14,61)
+plotTripLengthDistributionsAGGREGATE(dbc,allIMEIs,9,1,14,61)
 
 dbc.shutDown()
 
