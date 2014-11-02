@@ -143,7 +143,7 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         Xs.append(k)
         Xlabs.append("{0}-{1}%".format(k*10,k*10+10))
             
-    plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+    plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
     plt.ylabel("Number of Charging Events Started @ SOC")
     plt.xlabel("SOC")
