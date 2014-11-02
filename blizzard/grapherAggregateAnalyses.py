@@ -145,9 +145,9 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
             
     plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("Number of Charging \n Events Started @ SOC")
+    plt.ylabel("# charging events started")
     plt.xlabel("SOC")
-    plt.title("Charging Event Start V.S. SOC")
+    plt.title("charging event start v.s. SOC")
         
     ax = plt.subplot(111)
         
@@ -168,7 +168,7 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    plt.savefig("soc_vs_charging_events.png", format = 'png')
+    plt.savefig("charge_start_vs_soc.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
 
@@ -179,9 +179,9 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
 
     plt.figure(1,figsize=(1080/my_dpi, 600/my_dpi), dpi=my_dpi) 
         
-    plt.ylabel("Charging Events Ending @ SOC")
+    plt.ylabel("# charging events ended")
     plt.xlabel("SOC")
-    plt.title("Charging Event End V.S. SOC")
+    plt.title("charging event end v.s. SOC")
         
     ax = plt.subplot(111)
         
@@ -202,7 +202,7 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    plt.savefig("soc_vs_charging_events_end.png", format = 'png')
+    plt.savefig("charge_end_vs_soc", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
 
