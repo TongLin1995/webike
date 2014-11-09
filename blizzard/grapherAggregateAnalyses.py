@@ -5,6 +5,7 @@ import matplotlib as mpl
 #mpl.use('Agg')
 import matplotlib.pyplot as plt
 import SOC
+from numpy import linspace
 
 my_dpi = 90
 
@@ -202,7 +203,7 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
     plt.tight_layout()
-    plt.savefig("charge_end_vs_soc", format = 'png')
+    plt.savefig("charge_end_vs_soc.png", format = 'png')
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
 
@@ -440,6 +441,46 @@ def plotTripLengthDistributionsAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays)
     plt.savefig("trip_length_distribution.png", format = 'png')
 
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+
+
+def showSOCEstimates():
+   """#this shows an example of my SOC model for a linspace of voltages vs the original graphs"""   
+   """this is primarilty to produce a figure in my thesis. THis is NOT NEEDED ON BLIZZARD.""" 
+   plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
+        
+        
+   #plot1; the original battery graphs recieved from OEM     
+   ax = plt.subplot(211)
+   ax.plot(SOC.d["-20"]["Ys"], SOC.d["-20"]["Xs"], color='blue',label="-20C")
+   ax.plot(SOC.d["-10"]["Ys"] ,SOC.d["-10"]["Xs"], color='cyan',label="-10C")
+   ax.plot(SOC.d["0"]["Ys"] ,SOC.d["0"]["Xs"],   color='green',label="0C")
+   ax.plot(SOC.d["23"]["Ys"] ,SOC.d["23"]["Xs"], color='yellow',label="23C")
+   ax.plot(SOC.d["45"]["Ys"] ,SOC.d["45"]["Xs"], color='pink',label="45C")
+   ax.set_axisbelow(True) 
+   #ax.legend(numpoints=1, ncol = 1, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
+   plt.ylim(20000,0)
+   ax.yaxis.grid(color='gray', linestyle='solid')
+   ax.xaxis.grid(color='gray', linestyle='solid')
+   plt.ylabel("capacity in mAh")
+   plt.title("voltage vs capacity")
+
+
+   ax3 = plt.subplot(212)
+   SampVs = linspace(29,16,100)
+   ax3.plot(SampVs,SOC.SOCVals(-10, SampVs), color='cyan',label="-10C",marker="o",markersize=10,linestyle = " ")   
+   ax3.plot(SampVs,SOC.SOCVals(-20, SampVs), color='blue',label="-20C",marker="o",markersize=10,linestyle = " ")
+   ax3.plot(SampVs,SOC.SOCVals(0, SampVs), color='green',label="0C",marker="o",markersize=10,linestyle = " ")
+   ax3.plot(SampVs,SOC.SOCVals(23, SampVs), color='yellow',label="23C",marker="o",markersize=10,linestyle = " ")
+   ax3.plot(SampVs,SOC.SOCVals(45, SampVs), color='pink',label="45C",marker="o",markersize=10,linestyle = " ")
+   ax3.legend(numpoints=1, ncol = 3, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=2) 
+   #plt.ylim(0,1)
+   ax3.yaxis.grid(color='gray', linestyle='solid')
+   ax3.xaxis.grid(color='gray', linestyle='solid')   
+   plt.xlabel("voltage")
+   plt.ylabel("SOC (% of wh)")
+
+   plt.show()    
+   plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
 
 

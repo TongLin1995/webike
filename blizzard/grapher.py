@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import io
 from urllib import request as urlreq
 import SOC
-from numpy import linspace
+import matplotlib.colors as colors
+
 
 my_dpi = 90
 
@@ -23,8 +24,8 @@ def print_err(*args, **kwargs):
 
 def plotVoltage(dbc,imei,sMonth,sDay,sYear):
     startDate = datetime(sYear,sMonth,sDay)
-    s = startDate.strftime('%y-%m-%d') + " 06:00:00"
-    e = startDate.strftime('%y-%m-%d') + " 20:59:59"
+    s = startDate.strftime('%y-%m-%d') + " 00:00:00"
+    e = startDate.strftime('%y-%m-%d') + " 23:59:59"
     
     interpolate_starts = dict()
     interpolate_ends = dict()
@@ -74,7 +75,7 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
         """TODO: INSTEAD OF ASSUMING 23 DEGREES, QUERY THE BATTERY TEMPERATURE IN THE DATABASE AND USE THE CORRECT CURVE OF
         -20,-10,0,23,45"""
                 
-        SOCEstimates = [100*i for i in SOC.returnSOCVals3Line(23,Ysmoothed)]
+        SOCEstimates = [100*i for i in SOC.SOCVals(23,Ysmoothed)]
         
         """now we have to replace the portions of SOCEstimates relating to biking trips. 
         this is because battery voltage can fluctuate violently during biking. 
@@ -130,7 +131,7 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
         ax2.xaxis.grid(color='gray', linestyle='solid')
         
         plt.xlim(0,len(Xs))
-        plt.ylim(min(SOCEstimates),max(SOCEstimates))       
+        #plt.ylim(0,100)       
 
         plt.tight_layout()
         buf = io.BytesIO()
@@ -420,56 +421,7 @@ def plotDay(dbc,imei,sYear,sMonth,sDay):
     kml.save("/Users/tcarpent/Desktop/test16.kml")    
  
  
-def showSOCEstimates():
-   """#this shows an example of my SOC model for a linspace of voltages vs the original graphs"""   
-   """this is primarilty to produce a figure in my thesis. THis is NOT NEEDED ON BLIZZARD.""" 
-   plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
-        
-        
-   #plot1; the original battery graphs recieved from OEM     
-   ax = plt.subplot(211)
-   ax.plot(SOC.d["-20"]["Ys"], SOC.d["-20"]["Xs"], color='blue',label="-20C")
-   ax.plot(SOC.d["-10"]["Ys"] ,SOC.d["-10"]["Xs"], color='cyan',label="-10C")
-   ax.plot(SOC.d["0"]["Ys"] ,SOC.d["0"]["Xs"],   color='green',label="0C")
-   ax.plot(SOC.d["23"]["Ys"] ,SOC.d["23"]["Xs"], color='yellow',label="23C")
-   ax.plot(SOC.d["45"]["Ys"] ,SOC.d["45"]["Xs"], color='pink',label="45C")
-   ax.set_axisbelow(True) 
-   #ax.legend(numpoints=1, ncol = 1, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
-   plt.ylim(16000,0)
-   ax.yaxis.grid(color='gray', linestyle='solid')
-   ax.xaxis.grid(color='gray', linestyle='solid')
-   plt.ylabel("capacity in mAh")
-   plt.title("voltage vs capacity")
 
-   """#plot1; the original battery graphs recieved from OEM     
-   ax2 = plt.subplot(312)
-   ax2.plot(SOC.d["-20"]["Ys"], SOC.returnSOCVals3Line(-20,SOC.d["-20"]["Ys"]), color='blue',label="-20C")
-   ax2.plot(SOC.d["-10"]["Ys"] ,SOC.returnSOCVals3Line(-10,SOC.d["-10"]["Ys"]), color='cyan',label="-10C")
-   ax2.plot(SOC.d["0"]["Ys"] , SOC.returnSOCVals3Line(0,SOC.d["0"]["Ys"]),   color='green',label="0C")
-   ax2.plot(SOC.d["23"]["Ys"] ,SOC.returnSOCVals3Line(23,SOC.d["23"]["Ys"]), color='yellow',label="23C")
-   ax2.plot(SOC.d["45"]["Ys"], SOC.returnSOCVals3Line(45,SOC.d["45"]["Ys"]), color='pink',label="45C")
-   ax2.set_axisbelow(True) 
-   #ax2.legend(numpoints=1, ncol = 1, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
-   #plt.ylim(16000,0)
-   ax2.yaxis.grid(color='gray', linestyle='solid')
-   ax2.xaxis.grid(color='gray', linestyle='solid')
-   plt.ylabel("SOC (% of wh)")"""
 
-   ax3 = plt.subplot(212)
-   SampVs = linspace(32,16,100)
-   ax3.plot(SampVs,SOC.returnSOCValsLinear(-20, SampVs), color='blue',label="-20C")
-   ax3.plot(SampVs,SOC.returnSOCValsLinear(-10, SampVs), color='cyan',label="-10C")
-   ax3.plot(SampVs,SOC.returnSOCValsLinear(0, SampVs), color='green',label="0C")
-   ax3.plot(SampVs,SOC.returnSOCValsLinear(23, SampVs), color='yellow',label="23C")
-   ax3.plot(SampVs,SOC.returnSOCValsLinear(45, SampVs), color='pink',label="45C")
-   ax3.legend(numpoints=1, ncol = 3, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=0.2) 
-   #plt.ylim(0,1)
-   ax3.yaxis.grid(color='gray', linestyle='solid')
-   ax3.xaxis.grid(color='gray', linestyle='solid')   
-   plt.xlabel("voltage")
-   plt.ylabel("SOC (% of wh)")
-
-   plt.show()    
-   plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
 
