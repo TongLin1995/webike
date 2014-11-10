@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import SOC
 from numpy import linspace
 
+
 my_dpi = 90
 
 mpl.rcParams["lines.linewidth"] = 3
@@ -71,7 +72,7 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
     #plt.xlabel("Date")
     plt.ylabel("cumulative km traveled")
     plt.xlabel("date")
-    plt.title("km traveled per day per eBike")
+    plt.title("km traveled per eBike")
     
     ax = plt.subplot(111)
     
@@ -254,7 +255,7 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
     plt.figure(1,figsize=(1080/my_dpi, 1080/my_dpi), dpi=my_dpi) 
     
     plt.ylabel("range (km) assuming all trips have \n identical km/%SOC efficiency to this trip")
-    plt.xlabel("lenth of trip (km)")
+    plt.xlabel("length of trip (km)")
     plt.title("% of battery required per km vs trip length")
         
     ax = plt.subplot(111)
@@ -442,7 +443,6 @@ def plotTripLengthDistributionsAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays)
 
     plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
 
-
 def showSOCEstimates():
    """#this shows an example of my SOC model for a linspace of voltages vs the original graphs"""   
    """this is primarilty to produce a figure in my thesis. THis is NOT NEEDED ON BLIZZARD.""" 
@@ -466,12 +466,12 @@ def showSOCEstimates():
 
 
    ax3 = plt.subplot(212)
-   SampVs = linspace(29,16,100)
-   ax3.plot(SampVs,SOC.SOCVals(-10, SampVs), color='cyan',label="-10C",marker="o",markersize=10,linestyle = " ")   
-   ax3.plot(SampVs,SOC.SOCVals(-20, SampVs), color='blue',label="-20C",marker="o",markersize=10,linestyle = " ")
-   ax3.plot(SampVs,SOC.SOCVals(0, SampVs), color='green',label="0C",marker="o",markersize=10,linestyle = " ")
-   ax3.plot(SampVs,SOC.SOCVals(23, SampVs), color='yellow',label="23C",marker="o",markersize=10,linestyle = " ")
-   ax3.plot(SampVs,SOC.SOCVals(45, SampVs), color='pink',label="45C",marker="o",markersize=10,linestyle = " ")
+   SampVs = linspace(32,16,100)
+   ax3.plot(SampVs,SOC.SOCVals(-10, SampVs), color='cyan',label="-10C",marker="o",markersize=1,linestyle = "-")   
+   ax3.plot(SampVs,SOC.SOCVals(-20, SampVs), color='blue',label="-20C",marker="o",markersize=1,linestyle = "-")
+   ax3.plot(SampVs,SOC.SOCVals(0, SampVs), color='green',label="0C",marker="o",markersize=1,linestyle = "-")
+   ax3.plot(SampVs,SOC.SOCVals(23, SampVs), color='yellow',label="23C",marker="o",markersize=1,linestyle = "-")
+   ax3.plot(SampVs,SOC.SOCVals(45, SampVs), color='pink',label="45C",marker="o",markersize=1,linestyle = "-")
    ax3.legend(numpoints=1, ncol = 3, loc='best',columnspacing=0,labelspacing=1,handletextpad=0,borderpad=.15,markerscale=2) 
    #plt.ylim(0,1)
    ax3.yaxis.grid(color='gray', linestyle='solid')
@@ -481,6 +481,7 @@ def showSOCEstimates():
 
    plt.show()    
    plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
+
 
 
 
