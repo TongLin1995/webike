@@ -120,8 +120,8 @@ def plotChargeVsSOC(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
                 allChargeStartVoltages.append(chargeStartVolts[s])
                 allChargeEndVoltages.append(chargeEndVolts[s])
     
-    SOCEstimatesStart = [100*i for i in SOC.returnSOCValsLinear(23,allChargeStartVoltages)]
-    SOCEstimatesEnd= [100*i for i in SOC.returnSOCValsLinear(23,allChargeEndVoltages)]
+    SOCEstimatesStart = [100*i for i in SOC.SOCVals(23,allChargeStartVoltages)]
+    SOCEstimatesEnd= [100*i for i in SOC.SOCVals(23,allChargeEndVoltages)]
     
     Ys = [0,0,0,0,0,0,0,0,0,0]  
     Ys2 = [0,0,0,0,0,0,0,0,0,0]  
@@ -240,7 +240,7 @@ def plotEmpiricalRange(dbc,imeiList,sMonth,sDay,sYear,eMonth,eDay,eYear):
         
         import operator
         #compute the startsoc - endsoc for all these trips
-        alltripSOCDeltas += map(operator.sub, [100*a for a in SOC.returnSOCValsLinear(23,tripStartVoltages)], [100*b for b in SOC.returnSOCValsLinear(23,tripEndVoltages)])
+        alltripSOCDeltas += map(operator.sub, [100*a for a in SOC.SOCVals(23,tripStartVoltages)], [100*b for b in SOC.SOCVals(23,tripEndVoltages)])
            
     Xs = []
     Ys = []
