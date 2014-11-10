@@ -6,3 +6,4 @@ dbcredentials.txt
 .project
 .pydevproject
 *.png
+nohup.out

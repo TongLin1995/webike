@@ -95,7 +95,7 @@ def plotDistanceVsDayAGGREGATE(dbc,imeiList,sMonth,sDay,sYear,numDays):
     #plt.ylim(0,max(CumYs)+1)
     ax.set_xticks([i for i in range(0,len(Xs),2)])
     
-    ax.legend(numpoints=1, loc='best',columnspacing=0,labelspacing=0,handletextpad=0,borderpad=.15,markerscale=0.8) 
+    ax.legend(numpoints=1, loc='best', fontsize=18, ncol=2,columnspacing=0,labelspacing=0,handletextpad=0,borderpad=.15,markerscale=0.99) 
 
     plt.tight_layout()
     plt.savefig("CDF_per_bike.png", format = 'png')
