@@ -32,7 +32,7 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
     
     tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,s,e)
 
-    stmt = "select stamp, batteryVoltage from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and batteryVoltage is not null order by stamp".format(imei, s, e)
+    stmt = "select stamp, batteryVoltage from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and batteryVoltage is not null and batteryVoltage != 0 order by stamp".format(imei, s, e)
         
     Xs = []
     Xdatetimes = []
@@ -105,24 +105,27 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
         ax = plt.subplot(211)
         ax.plot(Xs,Ys,color='blue')
         ax.plot(Xs,Ysmoothed, color='red',linestyle="-")
+        ax.yaxis.set_tick_params(labelsize=14)
+        ax.xaxis.set_tick_params(labelsize=14)
         #make grid go behind bars
         ax.set_axisbelow(True) 
         ax.yaxis.grid(color='gray', linestyle='solid')
         ax.xaxis.grid(color='gray', linestyle='solid')
-        plt.ylabel("voltage")
+        plt.ylabel("Voltage (V)")
 
         plt.xlim(0,len(Xs))
         plt.ylim(min(Ys),max(Ys))       
 
         ax2 = plt.subplot(212)
-        plt.ylabel("SOC Estimation")
+        plt.ylabel("SOC Estimation (%)")
 
         ax2.plot(Xs,SOCEstimates, color='red')
         #set axis
         samplesec = 300
-        ax2.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),samplesec )], rotation=270 )
+        ax2.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),samplesec )], rotation=90, fontsize = 14 )
+        ax2.yaxis.set_tick_params(labelsize=14)
         ax2.set_xticks([i for i in range(0,len(Xs),samplesec )])
-        plt.xlabel("time of day")
+        plt.xlabel("Time of day")
         plt.gcf().subplots_adjust(bottom=0.5)
 
         #make grid go behind bars
