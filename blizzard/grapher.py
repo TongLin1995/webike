@@ -8,7 +8,7 @@ import io
 from urllib import request as urlreq
 import SOC
 import matplotlib.colors as colors
-
+from trajectory import trajectoryClean
 
 my_dpi = 90
 
@@ -100,7 +100,7 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
                     
         plt.figure(1, figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi)
         
-        plt.title("imei{0}: voltage over day".format(imei))
+        plt.title("Voltage over day")#.format(imei))
         
         ax = plt.subplot(211)
         ax.plot(Xs,Ys,color='blue')
@@ -163,7 +163,7 @@ def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
         
         plt.ylabel("trip km")
         plt.xlabel("trip start/stop time ")
-        plt.title("imei{0}:\n km traveled".format(imei))
+        plt.title("km traveled")#.format(imei))
         
         ax = plt.subplot(111)
         
@@ -196,7 +196,7 @@ def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
 def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
     curDate = datetime(2000+sYear,sMonth,sDay)
     end = curDate+timedelta(hours=23, minutes=59,seconds=59)
-    stmt = "select * from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null order by stamp".format(imei, curDate, end)
+    stmt = "select * from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null and longgps!=0 and latgps!=0  order by stamp".format(imei, curDate, end)
       
     lastRow = ""
     lastRowTime = ""
@@ -219,7 +219,7 @@ def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
                         Xs.append(count)
                         count += 1
                         Ys.append(kmph)
-                        Xlabs.append(l[0].strftime('%H:%M:%S'))
+                        Xlabs.append(l[0].strftime('%H:%M  '))
                     lastRow = l
                     lastRowTime = l[0]
     
@@ -229,11 +229,10 @@ def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
         plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
         #plt.xlabel("Date")
         plt.ylabel("kmph")
-        plt.title("imei{0}: speed over day; only non-zero speed times shown".format(imei))
-        
+        plt.title("Speed over day") #.format(imei))
         ax = plt.subplot(111)
     
-        ax.plot(Xs,Ys,color='blue')
+        ax.bar(Xs,Ys,color='blue')
         #ax.plot(Xs,Ysmoothed, color='red')
               
         #make grid go behind bars
@@ -243,11 +242,11 @@ def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
     
         #set axis
         samplesec = 1
-        ax.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),samplesec )], rotation=270 )
+        ax.set_xticklabels([Xlabs[i] for i in range(0,len(Xlabs),samplesec )], fontsize = 14, rotation=90)
+        ax.yaxis.set_tick_params(labelsize=14)
         ax.set_xticks([i for i in range(0,len(Xs),samplesec )])
-    
         plt.xlim(0,len(Xs))
-        plt.ylim(23,max(Ys))
+        plt.ylim(0,max(Ys)+0.05*max(Ys))
         #ax.set_yticks([0.1*x*100 for x in range(0,11)])
         #ax.set_yticklabels([0.05*x*100 for x in range(0,21)])
         
@@ -265,8 +264,15 @@ def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
 def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
     curDate = datetime(2000+sYear,sMonth,sDay)
     end = curDate+timedelta(days=numdays, hours=23, minutes=59,seconds=59)
-    tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)  
-    if len(tripStartTimes) == 0:  
+    """sDates = [datetime(sYear, sMonth, sDay)+timedelta(days = i) for i in range(numdays)]
+    dists = []
+    for i in sDates:
+        distsTemp = []
+        _, _, _, _, distsTemp, _, _ = trajectoryClean(dbc, imei, 0.08, i.year, i.month, i.day)  
+        dists.extend(distsTemp)
+    print(dists)"""
+    tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)
+    if len(dists) == 0:  
         return urlreq.urlopen("http://blizzard.cs.uwaterloo.ca/~sensordc/notfound.png").read()
     else:
         Xs = []
@@ -288,12 +294,12 @@ def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
         #plt.xlabel("Date")
         plt.ylabel("Number of Trips")
         plt.xlabel("Distance in km")
-        plt.title("imei{0}:\n trip length distribution".format(imei))
+        plt.title("Trip length distribution")#.format(imei))
         
         ax = plt.subplot(111)
         
         #plot
-        rects = ax.bar(Xs, Ys, color="black",width=.5)
+        rects = ax.bar(Xs, Ys, color="blue",width=.5)
         #ax.bar(Xs, Ys, color="black",width=.5)
         
         #label with number of valid rows
@@ -308,7 +314,8 @@ def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
         ax.yaxis.grid(color='gray', linestyle='solid')
         
         #set axis
-        ax.set_xticklabels(Xlabs, rotation=0 )
+        ax.set_xticklabels(Xlabs, rotation=0, fontsize = 14 )
+        ax.yaxis.set_tick_params(labelsize=14)
         ax.set_xticks([i+.25 for i in range(0,len(Xs))])
         plt.xlim(0,len(Xs))
         plt.ylim(0,max(Ys)+1)
@@ -354,7 +361,7 @@ def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
     
     #plt.xlabel("Date")
     plt.ylabel("km traveled \n(gray = CDF)")
-    plt.title("imei{0}:\n km traveled".format(imei))
+    plt.title("km traveled")#.format(imei))
     
     ax = plt.subplot(111)
     

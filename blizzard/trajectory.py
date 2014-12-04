@@ -3,7 +3,6 @@ from databaseConnector import *
 from datetime import datetime
 from compute import haversine, detectTrips
 import matplotlib.pyplot as plt
-from grapher import plotDay
 
 
 # Calculate Haversine distance between subsequent points
@@ -181,4 +180,11 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
 
         return newLon, newLat, startStr, endStr, dist, totalTime, stampsStr
     else:
-        return 1
+        newLon = []
+        newLat = []
+        startStr = []
+        endStr = []
+        dist = []
+        totalTime = []
+        stampsStr = []
+        return newLon, newLat, startStr, endStr, dist, totalTime, stampsStr
