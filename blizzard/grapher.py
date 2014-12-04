@@ -155,27 +155,28 @@ def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
         Ycounts = []
         Xlabs = []
         for i in range(0, len(tripStartTimes)):
-            Xlabs.append("{0} ->\n{1}".format(tripStartTimes[i].strftime('%H:%M:%S'), tripEndTimes[i].strftime('%H:%M:%S')))
+            Xlabs.append("{0} -\n{1}".format(tripStartTimes[i].strftime('%H:%M'), tripEndTimes[i].strftime('%H:%M')))
             Xs.append(i) 
             Ys.append(dists[i])
 
         plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
         
-        plt.ylabel("trip km")
-        plt.xlabel("trip start/stop time ")
-        plt.title("km traveled")#.format(imei))
+        plt.ylabel("Distance (km)")
+        plt.xlabel("Start time - Stop time ")
+        plt.title("Trips {0}/{1}/{2}".format(sMonth, sDay, sYear))#.format(imei))
         
         ax = plt.subplot(111)
         
         #plot
-        rects = ax.bar(Xs, Ys, color="black",width=.5)
+        rects = ax.bar(Xs, Ys, color="blue",width=.5)
         
         #make grid go behind bars
         ax.set_axisbelow(True) 
         ax.yaxis.grid(color='gray', linestyle='solid')
         
         #set axis
-        ax.set_xticklabels(Xlabs, rotation=0 ) ;
+        ax.set_xticklabels(Xlabs, rotation=0, fontsize = 14)
+        ax.yaxis.set_tick_params(labelsize=14)
         plt.xlim(0,len(Xs))
         plt.ylim(0,max(Ys)+1)
         ax.set_xticks([i+.25 for i in range(0,len(Xs))])
@@ -228,7 +229,7 @@ def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
     else:
         plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
         #plt.xlabel("Date")
-        plt.ylabel("kmph")
+        plt.ylabel("Speed (kmph)")
         plt.title("Speed over day") #.format(imei))
         ax = plt.subplot(111)
     
@@ -293,7 +294,7 @@ def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
         
         #plt.xlabel("Date")
         plt.ylabel("Number of Trips")
-        plt.xlabel("Distance in km")
+        plt.xlabel("Distance (km)")
         plt.title("Trip length distribution")#.format(imei))
         
         ax = plt.subplot(111)
@@ -344,7 +345,7 @@ def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
     Ys = []
     CumYs = []
     for i in range(0,numDays):
-        Xlabs.append(curDate.strftime('%y/%m/%d'))
+        Xlabs.append(curDate.strftime('%m/%d/%y'))
         end = curDate+timedelta(hours=23, minutes=59,seconds=59)
         tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)
         dday = 0
@@ -360,21 +361,22 @@ def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
     plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
     
     #plt.xlabel("Date")
-    plt.ylabel("km traveled \n(gray = CDF)")
-    plt.title("km traveled")#.format(imei))
+    plt.ylabel("Distance (km) \n(gray = CDF)")
+    plt.title("Distance traveled per day")#.format(imei))
     
     ax = plt.subplot(111)
     
     #plot the two bars
     ax.bar(Xs,CumYs, color="grey",width=1)
-    rects = ax.bar(Xs, Ys, color="black",width=1)
+    rects = ax.bar(Xs, Ys, color="blue",width=1)
 
     #make grid go behind bars
     ax.set_axisbelow(True) 
     ax.yaxis.grid(color='gray', linestyle='solid')
     
     #set axis
-    ax.set_xticklabels(Xlabs, rotation=270 ) ;
+    ax.set_xticklabels(Xlabs, rotation=90, fontsize = 14)
+    ax.yaxis.set_tick_params(labelsize=14)
     plt.xlim(0,len(Xs))
     plt.ylim(0,max(CumYs)+1)
     ax.set_xticks([i+.5 for i in range(0,len(Xs))])
