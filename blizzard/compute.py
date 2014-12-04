@@ -52,8 +52,8 @@ def detectTrips(dbc,imei,startDate,endDate):
             TIMELAPSE = (l[0]-lastRowTime).total_seconds()
             d = haversine(l[3],lastRow[3], l[4], lastRow[4])*1000
             
-            if TIMELAPSE >= 300 and tripHasStarted == 1: #if we have more than a 10 minute gap in data, end prior trip if it exists   
-               if 1000 < tripDist < 1000000: #low and high pass filter
+            if TIMELAPSE >= 1200 and tripHasStarted == 1: #if we have more than a 10 minute gap in data, end prior trip if it exists   
+               if 100 < tripDist < 1000000: #low and high pass filter
                    tripStartTimes.append(tripStart)
                    tripEndTimes.append(tripEnd)
                    tripDists.append(tripDist/1000)
@@ -65,7 +65,7 @@ def detectTrips(dbc,imei,startDate,endDate):
                lastRow = l
                lastRowTime = l[0]
 
-            elif (TIMELAPSE >= 5): #only consider rows 10 seconds apart 
+            elif (TIMELAPSE >= 10): #only consider rows 10 seconds apart 
                if d > 15 and 1000 < d/(TIMELAPSE/3600) < 80000: 
                    #assume that anything less than .5km/h or more than 80kmph is an error, and anything < 15 is an error
                    # start trip, or add to existing trip. 
