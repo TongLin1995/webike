@@ -147,7 +147,7 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
             tempLon = []
             tempLat = []
             tempStamp = []
-            stmt = "select stamp, LatGPS, LongGPS from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null order by stamp;".format(imei, tripStartTimes[tripNumber], tripEndTimes[tripNumber])
+            stmt = "select stamp, LatGPS, LongGPS from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null and latgps!= 0.0 and longgps!=0 order by stamp;".format(imei, tripStartTimes[tripNumber], tripEndTimes[tripNumber])
             for l in dbc.SQLSelectGenerator(stmt):
                 stamps.append(l[0])
                 lat.append(l[1])

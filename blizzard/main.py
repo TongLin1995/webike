@@ -181,7 +181,7 @@ def googemapscoords():
     curdate = datetime(int(dt[2].replace("\"", "")) + 2000, int(dt[0]), int(dt[1].replace("\"", "")))
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
     longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2]) + 2000, int(dt[0]), int(dt[1]))
-    return json.dumps({"lats": lats[0], "longs": longs[0], "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps})
+    return json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps})
 
 
 if __name__ == "__main__":

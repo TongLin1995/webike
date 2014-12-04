@@ -19,9 +19,51 @@
 
 <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDY0kkJiTPVd2U7aTOAwhc9ySH6oHxOIYM&sensor=false"></script>    
     <script>
+    var marker = new Array(0);
+    var map;
+    var contentString = "";
+    var infowindow = new google.maps.InfoWindow({
+                              content: contentString
+                            });
+    function initialize(){
+      
+    }
 
-	function changeImage(which)
-	{
+    function toggleTable() {
+      var lTable = document.getElementById("summaryTable");
+      lTable.style.display = "table";
+      var sb = document.getElementById("showButton");
+      sb.style.display = "";
+      var hb = document.getElementById("clearButton");
+      hb.style.display = "";
+    }
+    function toggleTableOff() {
+      var lTable = document.getElementById("summaryTable");
+      lTable.style.display = "none";
+      var sb = document.getElementById("showButton");
+      sb.style.display = "none";
+      var hb = document.getElementById("clearButton");
+      hb.style.display = "none";
+    }
+
+    function setAllMap(map) {
+      for (var i = 0; i < marker.length; i++) {
+        marker[i].setMap(map);
+      }
+    }
+
+    // Removes the marker from the map, but keeps them in the array.
+    function clearMarkers() {
+      setAllMap(null);
+    }
+
+    // Shows any marker currently in the array.
+    function showMarkers() {
+      setAllMap(map);
+    }
+
+	 function changeImage(which)
+	 {
 		if(which == 1)
 		{
 			var start = document.getElementsByName('date1')[0].value; 
@@ -49,6 +91,8 @@
 			var start = document.getElementsByName('date5')[0].value; 
 			var locationString = "/webike/plotSpeedOnDay?imei=" + {{ i }} + "&s=" + start;
 		}
+		
+		
 		if(which == 6)
 		{
             $.get(
@@ -58,22 +102,98 @@
                         document.getElementById('map').style.display = 'block';
                         document.getElementById('mainimage').style.display = 'none';
                         var json = data;
+                        var Colors = ["#504B4B", "#00FF00", "#0000FF", "#000000", "#FFFF00", "#00FFFF", "#FF00FF", "#FFE4C4", "#A52A2A", "#5F9EA0", "#FF7F50", "#DC143C", "#008B8B", "#B8860B", "#BDB76B", "#556B2F", "#483D8B", "#1E90FF"];
                         obj = JSON.parse(json);
-                        var map = new google.maps.Map(document.getElementById('map'), {
+                        t1 = document.getElementById("summaryTable");
+                        var l = t1.rows.length;
+                        for (var i=0; i < l-1; i++){
+                            console.log(t1.rows.length);
+                            t1.deleteRow(1);
+                          }
+                        for(i = 0; i < obj["start"].length; i++){
+                          row = document.createElement("tr");
+                          cell0 = document.createElement("td");
+                          cell1 = document.createElement("td");
+                          cell2 = document.createElement("td");
+                          cell3 = document.createElement("td");
+                          cell4 = document.createElement("td");
+                          cell5 = document.createElement("td");
+                          cell5.style.backgroundColor=Colors[i];
+                          textnode0 = document.createTextNode(i+1);
+                          textnode1 = document.createTextNode(obj["start"][i]);
+                          textnode2 = document.createTextNode(obj["end"][i]);
+                          textnode3 = document.createTextNode(obj["ttime"][i].toFixed(0));
+                          textnode4 = document.createTextNode(obj["d"][i].toFixed(2));
+                          textnode5 = document.createTextNode("");
+                          cell0.appendChild(textnode0);
+                          cell1.appendChild(textnode1);
+                          cell2.appendChild(textnode2);
+                          cell3.appendChild(textnode3);
+                          cell4.appendChild(textnode4);
+                          cell5.appendChild(textnode5);
+                          row.appendChild(cell0);
+                          row.appendChild(cell1);
+                          row.appendChild(cell2);
+                          row.appendChild(cell3);
+                          row.appendChild(cell4);
+                          row.appendChild(cell5);
+                          t1.appendChild(row);
+                        }
+                        map = new google.maps.Map(document.getElementById('map'), {
                          zoom: 12,
                          center: new google.maps.LatLng(43.472285, -80.544858),
                          mapTypeId: google.maps.MapTypeId.ROADMAP
                         });
-                        var marker, i;
+                        marker = [];
                         for (i = 0; i < obj["lats"].length; i++) {
-                         marker = new google.maps.Marker({
-                             position: new google.maps.LatLng(obj["lats"][i], obj["longs"][i]),
-                             map: map
-                         });
+                          for (j = 0; j < obj["lats"][i].length; j++){
+                            marker.push(new google.maps.Marker({
+                             position: new google.maps.LatLng(obj["lats"][i][j], obj["longs"][i][j]),
+                             map: map,
+                             title:'Click to see time'
+                              }));
+                            contentString = obj["stamps"][i][j].toString();
+                            /*infowindow = new google.maps.InfoWindow({
+                              content: contentString
+                            });*/
+                            google.maps.event.addListener(marker[marker.length-1],'click', (function(marker,contentString,infowindow){ 
+                                return function() {
+                                    infowindow.setContent(contentString);
+                                    infowindow.open(map,marker);
+                                };
+                            })(marker[marker.length-1],contentString,infowindow));  
+                            /*google.maps.event.addListener(marker[marker.length-1], 'click', function() {
+                              infowindow.open(map,marker[marker.length-1]);
+                            });*/
+                          }
                        
                         }
-                       
+                        var pass = 0;
+                        var flightPlanCoordinates = new Array(obj["lats"].length-1); 
+                        for (i = 0; i < obj["lats"].length; i++) {
+                          flightPlanCoordinates[i] = new Array(0)
+                          for (j = 0; j < obj["lats"][i].length; j++){
+                            flightPlanCoordinates[i].push(new google.maps.LatLng(obj["lats"][i][j], obj["longs"][i][j]));
+                          };
+                        }
+                        for(i=0; i < flightPlanCoordinates.length; i++){
+                          var flightPath = new google.maps.Polyline({
+                              map:map,
+                              path: flightPlanCoordinates[i],
+                              // geodesic: true,
+                              strokeColor: Colors[i],
+                              // strokeOpacity: 1.0,
+                              // strokeWeight: 2
+                              //map : map
+                              });
+                            //flightPath.setMap(map);
+                        }
+                        google.maps.event.addDomListener(window, 'load', initialize);
+                        
+                        
+
                 });
+              
 		}
 		
 		if(which != 6)
@@ -85,7 +205,7 @@
 		
 		
 	}
-	</script>
+    </script>
 
 </script>
 
@@ -111,7 +231,7 @@
   		<div class="jumbotron text-center" style="height: 250px;">
     	 <h2>Trips On Day</h2>          
          	  mm/dd/yy: <input type="text" name="date1" id="date1" value=""><br><br>
-    		  <a class="btn btn-large btn-success" onclick="changeImage(1)">Generate!</a>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(1);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
   
@@ -122,7 +242,7 @@
           		mm/dd/yy:<input type="text" name="date2" id="date2" value="">
       			Num Days:<input type="text" name="ndays" id="ndays" value="">
       			<br>
-      		<a class="btn btn-large btn-success" onclick="changeImage(2)">Generate!</a><br>
+      		<a class="btn btn-large btn-success" onclick="changeImage(2);toggleTableOff();">Generate!</a><br>
   		</div>
    	</div>
 
@@ -130,7 +250,7 @@
   		<div class="jumbotron text-center" style="height: 250px;">
     	 <h2>Battery Life on Day</h2>          
          	  mm/dd/yy: <input type="text" name="date3" id="date3" value=""><br><br>
-    		  <a class="btn btn-large btn-success" onclick="changeImage(3)">Generate!</a>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(3);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
       </div>
@@ -144,7 +264,7 @@
           		mm/dd/yy:<input type="text" name="date4" id="date4" value="">
       			Num Days:<input type="text" name="ndays2" id="ndays2" value="">
       			<br>
-      		<a class="btn btn-large btn-success" onclick="changeImage(4)">Generate!</a><br>
+      		<a class="btn btn-large btn-success" onclick="changeImage(4); toggleTableOff();">Generate!</a><br>
   		</div>
    	</div>
 
@@ -152,7 +272,7 @@
   		<div class="jumbotron text-center" style="height: 250px;">
     	 <h2>Speed On Day</h2>          
          	  mm/dd/yy: <input type="text" name="date5" id="date5" value=""><br><br>
-    		  <a class="btn btn-large btn-success" onclick="changeImage(5)">Generate!</a>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(5);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
 
@@ -161,18 +281,35 @@
   		<div class="jumbotron text-center" style="height: 250px;">
     	 <h2>Google Maps</h2>          
          	  mm/dd/yy: <input type="text" name="date6" id="date6" value=""><br><br>
-    		  <a class="btn btn-large btn-success" onclick="changeImage(6)">Generate!</a>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(6);toggleTable();">Generate!</a>
   		</div>
    		</div>
    		
       </div>
             
+<table id = "summaryTable" border = "1" style="display:none; width:80%; font-size:15px;" align = "center">
+        <tr>
+          <th align = "center" bgcolor="#59BA5B" style="text-align: center;"><font color = "white"> Trip Number</font></th>
+          <th align = "center" bgcolor="#59BA5B" style="text-align: center;"><font color = "white"> Start Time</font></th>
+          <th align = "center" bgcolor="#59BA5B" style="text-align: center;"><font color = "white"> Finish Time</font></th>
+          <th align = "center" bgcolor="#59BA5B" style="text-align: center;"><font color = "white"> Total Time (minutes)</font></th>
+          <th align = "center" bgcolor="#59BA5B" style="text-align: center;"><font color = "white"> Total Distance (km)</font></th>
+          <th align = "center" bgcolor="#59BA5B" style="text-align: center;"><font color = "white"> Color</font></th>
+          <!-- <th bgcolor="#504B4B"><font color="white">Total Distance</font></th>
+          <th bgcolor="#504B4B"><font color="white">Total Time</font></th> -->
+        </tr>
+      </table>
+      <div align="center">
+        <br/>
+        <button type="button" class="btn btn-large btn-success" id = "clearButton" style="display:none;" onclick="clearMarkers()">Hide Markers</button>
+        <button type="button" class="btn btn-large btn-success" id = "showButton" style="display:none;" onclick="showMarkers()">Show Markers</button>
+        <br/>
+      </div>
     <!-- Wrap the rest of the page in another container to center all the content. -->
           <div id="map" style="display: none; width:1080px; height:600px;"></div>
           <div id = "mainimage" class="text-center"  style="display: none; width:1080px; height:900px;">
-          	<img id="mainImageinside" class="text-center" style="width:1080px; height:900px;">
+          	<img id="mainImageinside" class="text-center" style="width:1080px; height:1000px;">
      	  </div>
 
   </body>
 </html>
-
