@@ -284,15 +284,15 @@ def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
         Ys = [0,0,0,0,0,0,0,0,0,0]  
         
         for k in dists:
-            if k > 45:
+            if k > 20:
                 Ys[9] += 1
             else:
-                Ys[int(k / 5)] += 1
+                Ys[int(k / 2)] += 1
                     
         for i in range(0,10):
-            Xlabs.append("{0}-{1}".format(i*5,i*5+5))
+            Xlabs.append("{0}-{1}".format(i*2,i*2+2))
             Xs.append(i)
-            
+        Xlabs[9] = "18-" 
         plt.figure(1,figsize=(1080/my_dpi, 900/my_dpi), dpi=my_dpi) 
         
         #plt.xlabel("Date")
