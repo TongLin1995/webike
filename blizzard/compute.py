@@ -53,7 +53,7 @@ def detectTrips(dbc,imei,startDate,endDate):
             d = haversine(l[3],lastRow[3], l[4], lastRow[4])*1000
             
             if TIMELAPSE >= 1200 and tripHasStarted == 1: #if we have more than a 10 minute gap in data, end prior trip if it exists   
-               if 100 < tripDist < 1000000: #low and high pass filter
+               if 500 < tripDist < 1000000: #low and high pass filter
                    tripStartTimes.append(tripStart)
                    tripEndTimes.append(tripEnd)
                    tripDists.append(tripDist/1000)
