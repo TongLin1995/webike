@@ -54,10 +54,11 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
                     interpolate_ends[j] = -1
                 interpolate_starts[j] = min(interpolate_starts[j], count)
                 interpolate_ends[j] = max(interpolate_ends[j], count)          
+        
         Xlabs.append(l[0].strftime('%H:%M:%S'))
         Ys.append(float(l[1]))
         count += 1
-   
+    
     if (count == 0):
         return urlreq.urlopen("http://blizzard.cs.uwaterloo.ca/~sensordc/notfound.png").read()
     else:

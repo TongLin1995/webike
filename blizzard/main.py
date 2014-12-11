@@ -180,7 +180,7 @@ def googemapscoords():
     dt = request.args.get('date').split("/")  # also accepted in URL, but defaults to 1
     curdate = datetime(int(dt[2].replace("\"", "")) + 2000, int(dt[0]), int(dt[1].replace("\"", "")))
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
-    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2]) + 2000, int(dt[0]), int(dt[1]))
+    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")) + 2000, int(dt[0].replace("\"", "")), int(dt[1]))
     return json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps})
 
 
