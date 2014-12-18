@@ -146,7 +146,7 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
             
 
 def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
-    curDate = datetime(2000+sYear,sMonth,sDay)
+    curDate = datetime(sYear,sMonth,sDay)
     end = curDate+timedelta(hours=23, minutes=59,seconds=59)
     tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)  
     
@@ -199,7 +199,7 @@ def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
 
 
 def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
-    curDate = datetime(2000+sYear,sMonth,sDay)
+    curDate = datetime(sYear,sMonth,sDay)
     end = curDate+timedelta(hours=23, minutes=59,seconds=59)
     stmt = "select * from imei{0} where stamp >= \"{1}\" and stamp <= \"{2}\" and latgps is not null and longgps is not null and longgps!=0 and latgps!=0  order by stamp".format(imei, curDate, end)
       
@@ -267,7 +267,7 @@ def plotMaxSpeedTripOnDay(dbc,imei,sMonth,sDay,sYear):
 
 
 def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
-    curDate = datetime(2000+sYear,sMonth,sDay)
+    curDate = datetime(sYear,sMonth,sDay)
     end = curDate+timedelta(days=numdays, hours=23, minutes=59,seconds=59)
     """sDates = [datetime(sYear, sMonth, sDay)+timedelta(days = i) for i in range(numdays)]
     dists = []
@@ -342,7 +342,7 @@ def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
 
 
 def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
-    curDate = datetime(2000+sYear,sMonth,sDay)
+    curDate = datetime(sYear,sMonth,sDay)
     Xs = [i for i in range(0,numDays)]
     Xlabs = []
     Ycounts = []
