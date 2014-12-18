@@ -207,6 +207,31 @@
 	}
     </script>
 
+    <!-- datepicker libraries -->
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6/jquery.min.js" type = "text/javascript"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js" type = "text/javascript"></script>
+    <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel = "Stylesheet" type="text/css" /> 
+    <script type = "text/javascript">
+    $(document).ready(function () {
+        $("#date6").datepicker();
+    });
+    $(document).ready(function () {
+        $("#date5").datepicker();
+    });
+    $(document).ready(function () {
+        $("#date4").datepicker();
+    });
+    $(document).ready(function () {
+        $("#date3").datepicker();
+    });
+    $(document).ready(function () {
+        $("#date2").datepicker();
+    });
+    $(document).ready(function () {
+        $("#date1").datepicker();
+    });
+
+    </script>
 
 
         
@@ -229,7 +254,7 @@
    		<div class="col-md-4">
   		<div class="jumbotron text-center" style="height: 250px;">
     	 	<h2>Trip Lengths</h2>          
-         	  mm/dd/yy: <input type="text" name="date1" id="date1" value=""><br><br>
+         	  Date: <input type="text" name="date1" id="date1" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(1);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
@@ -238,7 +263,7 @@
      <div class="col-md-4">
   		<div class="jumbotron text-center" style="height: 250px;">
      		<h2>Km Per Day</h2>          
-          		mm/dd/yy:<input type="text" name="date2" id="date2" value="">
+          		Date:<input type="text" name="date2" id="date2" value="">
       			Num Days:<input type="text" name="ndays" id="ndays" value="">
       			<br>
       		<a class="btn btn-large btn-success" onclick="changeImage(2);toggleTableOff();">Generate!</a><br>
@@ -248,7 +273,7 @@
    		<div class="col-md-4">
   		<div class="jumbotron text-center" style="height: 250px;">
     	 	<h2>Battery Charge</h2>          
-         	  mm/dd/yy: <input type="text" name="date3" id="date3" value=""><br><br>
+         	  Date: <input type="text" name="date3" id="date3" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(3);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
@@ -260,7 +285,7 @@
      <div class="col-md-4">
   		<div class="jumbotron text-center" style="height: 250px;">
      		<h2>Lengths Distribution</h2>          
-          		mm/dd/yy:<input type="text" name="date4" id="date4" value="">
+          		Date:<input type="text" name="date4" id="date4" value="">
       			Num Days:<input type="text" name="ndays2" id="ndays2" value="">
       			<br>
       		<a class="btn btn-large btn-success" onclick="changeImage(4); toggleTableOff();">Generate!</a><br>
@@ -270,7 +295,7 @@
    		<div class="col-md-4">
   		<div class="jumbotron text-center" style="height: 250px;">
 	    	 <h2>Speed On Day</h2>          
-         	  mm/dd/yy: <input type="text" name="date5" id="date5" value=""><br><br>
+         	  Date: <input type="text" name="date5" id="date5" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(5);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
@@ -279,7 +304,7 @@
    		<div class="col-md-4">
   		<div class="jumbotron text-center" style="height: 250px;">
     	 <h2>Plot Trips</h2>          
-         	  mm/dd/yy: <input type="text" name="date6" id="date6" value=""><br><br>
+         	  Date: <input type="text" name="date6" id="date6" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(6);toggleTable();">Generate!</a>
   		</div>
    		</div>
