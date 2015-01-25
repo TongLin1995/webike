@@ -420,7 +420,6 @@ def plotDay(dbc,imei,sYear,sMonth,sDay):
     lastRowTime = ""
     lastTrip = "1"
     for l in dbc.SQLSelectGenerator(stmt):
-        print(l)
         if l is not None and abs(l[3]) > 1 and abs(l[4]) > 1:
             if lastRow == "" :
                 lastRow = l

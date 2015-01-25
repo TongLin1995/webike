@@ -52,23 +52,19 @@ def joinCC(cc, distances):
     for i in range(len(cc) - 1):
         if cc[i][2] == cc[i + 1][0] and i not in joined:
             if(distances[cc[i][1]] > distances[cc[i + 1][1]]):
-                print("option 1")
                 barTemp.append(cc[i])  # append the non-surviving cc to the list of bars
                 copycc[i + 1][0] = c[i][0]  # change value of the last point of the cc that remains
                 if ((i+1) not in keep):
                     keep.append(i + 1)  # saving the one that should stay-contrary to the one that should be deleted
                 joined.append(i)
                 joined.appendfinished (i+1)
-                print("finished option 2")
             else:
-                print("option 2")
                 barTemp.append(cc[i+1])  # append the non-surviving cc to the list of bars
                 copycc[i][2] = cc[i + 1][2]  # change value of the first point of the cc that remains
                 if i not in keep:
                     keep.append(i) # saving the one that should stay-contrary to the one that should be deleted
                 joined.append(i)
                 joined.append(i+1)
-                print("finished option 2")
         elif i not in joined:
             # it is giving them two chances to survive and it is eliminating the last one automatically if it does not win
             if i not in keep:
@@ -81,7 +77,6 @@ def joinCC(cc, distances):
 
 def gpsSimplification(lon, lat, stamps, beta):
     distances = haversineDistance(lon, lat)  # obtain list with distances between points
-    print("s1 in simp")
     mini = []  # list of local minima
     maxi = []  # list of local maxima
     # get local minima and local maxima
@@ -96,20 +91,11 @@ def gpsSimplification(lon, lat, stamps, beta):
         cc.append([i, i, i])
 
     # while there is more than one connected component keep joining component together
-    print("s2 in simp")
-    print("length of cc is: ", len(cc))
     while(len(cc) != 1):
         barTemporary = []
-        print("before increase cc with length: ", len(cc))
-        print("max and min: ", maxi, mini, cc, distances)
         cc = increaseCC(cc, maxi, mini, distances)
-        print("after increase cc with length: ", len(cc))
-        print("after increase cc: ", cc)
         barTemporary, cc = joinCC(cc, distances)
-        print("after join CC with len: ", len(cc))
-        print("after join cc : ", cc)
         bar.extend(barTemporary)
-    print("s3 in simp")
     # beta simplification
     newBar = []
     for i in range(len(bar)):
@@ -137,7 +123,6 @@ def gpsSimplification(lon, lat, stamps, beta):
         else:
             finalValues.append(None)
 
-    print("s4 in simp")
     # obtaining plottable points
     xplottable = []
     plottable = []
@@ -145,7 +130,6 @@ def gpsSimplification(lon, lat, stamps, beta):
         if finalValues[i] is not None:
             xplottable.append(i)
             plottable.append(finalValues[i])
-    print("s5 in simp")
     newLat = []
     newLon = []
     newStamp = []
@@ -168,15 +152,13 @@ def totalDistance(dist):
     return d
 
 def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
-    curDate = datetime(2014, smonth, sday, 0, 0, 0)
-    endDate = datetime(2014, smonth, sday, 23, 59, 59)
+    curDate = datetime(syear, smonth, sday, 0, 0, 0)
+    endDate = datetime(syear, smonth, sday, 23, 59, 59)
     newLon = []
     newLat = []
     newStamp = []
     # obtaining the trips in one day
     tripStartTimes, tripEndTimes, dists = detectTrips(dbc, imei, curDate, endDate)
-    print("Step 1")
-    #print(tripStartTimes[1], tripEndTimes[1])
     if (len(tripStartTimes) > 0):
         #obtaining the data about all trips and then copying it to the arrays containing this information
         for tripNumber in range(len(tripStartTimes)):
@@ -191,9 +173,7 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
                 stamps.append(l[0])
                 lat.append(l[1])
                 lon.append(l[2])
-            print("before")
             tempLon, tempLat, tempStamp = gpsSimplification(lon, lat, stamps, beta)
-            print("after")
             newLon.append(tempLon)
             newLat.append(tempLat)
             newStamp.append(tempStamp)
@@ -222,7 +202,6 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
 
         return newLon, newLat, startStr, endStr, dist, totalTime, stampsStr
     else:
-        print("Empty")
         newLon = []
         newLat = []
         startStr = []

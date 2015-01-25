@@ -92,6 +92,7 @@ def detectTrips(dbc,imei,startDate,endDate):
                             tripDist = 0
                lastRow = l
                lastRowTime = l[0]
+    print(len(tripStartTimes))
     return tripStartTimes, tripEndTimes, tripDists
     
 
