@@ -114,7 +114,7 @@ def analyzer():
 def dph():
     imei = request.args.get('imei')  # also accepted in URL, but defaults to 1
     dt = request.args.get('s').split("/")  # also accepted in URL, but defaults to 1
-    ret = plotTripsOnDay(g.dbc, imei[-4:], int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
+    ret = plotTripsOnDay(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
     print_err(ret)
     resp = Response(response=ret,
                     status=200,
@@ -127,7 +127,7 @@ def dph():
 def vot():
     imei = request.args.get('imei')  # also accepted in URL, but defaults to 1
     dt = request.args.get('s').split("/")  # also accepted in URL, but defaults to 1
-    ret = plotVoltage(g.dbc, imei[-4:], int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
+    ret = plotVoltage(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
     resp = Response(response=ret,
                     status=200,
                     mimetype="image/png")
@@ -140,7 +140,7 @@ def dpd():
     imei = request.args.get('imei')
     dt = request.args.get('s').split("/")
     numdays = int(request.args.get('nd'))
-    ret = plotDistanceVsDay(g.dbc, imei[-4:], int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
+    ret = plotDistanceVsDay(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
     print_err(ret)
     resp = Response(response=ret,
                     status=200,
@@ -154,7 +154,7 @@ def tld():
     imei = request.args.get('imei')
     dt = request.args.get('s').split("/")
     numdays = int(request.args.get('nd'))
-    ret = plotTripLengthDistribution(g.dbc, imei[-4:], int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
+    ret = plotTripLengthDistribution(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
     resp = Response(response=ret,
                     status=200,
                     mimetype="image/png")
@@ -166,7 +166,7 @@ def tld():
 def needforspeed():
     imei = request.args.get('imei')  # also accepted in URL, but defaults to 1
     dt = request.args.get('s').split("/")  # also accepted in URL, but defaults to 1
-    ret = plotMaxSpeedTripOnDay(g.dbc, imei[-4:], int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
+    ret = plotMaxSpeedTripOnDay(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
     resp = Response(response=ret,
                     status=200,
                     mimetype="image/png")
@@ -180,7 +180,7 @@ def googemapscoords():
     dt = request.args.get('date').split("/")  # also accepted in URL, but defaults to 1
     curdate = datetime(int(dt[2].replace("\"", "")), int(dt[0]), int(dt[1].replace("\"", "")))
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
-    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei[-4:], 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
+    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
     return json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps})
 
 
