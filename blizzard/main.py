@@ -183,6 +183,5 @@ def googemapscoords():
     longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
     return json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps})
 
-
 if __name__ == "__main__":
     app.run(debug=True, port=5000, host="blizzard.cs.uwaterloo.ca")

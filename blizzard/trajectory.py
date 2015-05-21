@@ -197,7 +197,7 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
         for i in range(len(newStamp)):
             tempStampStr = []
             for j in range(len(newStamp[i])):
-                tempStampStr.append(newStamp[i][j].strftime('%H:%M'))
+                tempStampStr.append(newStamp[i][j].strftime('%H:%M:%S'))
             stampsStr.append(tempStampStr)
 
         return newLon, newLat, startStr, endStr, dist, totalTime, stampsStr

@@ -15,14 +15,6 @@
     <!-- Custom styles for this template -->
     <link href="../~sensordc/bootstrap/css/jumbotron.css" rel="stylesheet">
 
-    <style>
-    h1 {
-      margin-top:-30px;
-    }
-    h2 {
-      margin-top:-20px;
-    }
-    </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
 <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDY0kkJiTPVd2U7aTOAwhc9ySH6oHxOIYM&sensor=false"></script>    
@@ -70,52 +62,17 @@
       setAllMap(map);
     }
 
-function startLoadingPage() {
-  document.getElementById('loadingPage').style.display = 'block';
-  document.getElementById('finishPage').style.display = 'none';
-}
-
-function deg2rad(deg) {
-  return deg * (Math.PI/180)
-}
-
-function getDistanceFromLatLonInMeter(lat1,lon1,lat2,lon2) {
-  var R = 6371; // Radius of the earth in km
-  var dLat = deg2rad(lat2-lat1);  // deg2rad below
-  var dLon = deg2rad(lon2-lon1); 
-  var a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-    ; 
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
-  var d = R * c * 1000; // Distance in meter
-  return d;
-}
-
-function closeLoadingPage() {
-  document.getElementById('loadingPage').style.display = 'none';
-  document.getElementById('finishPage').style.display = 'block';
-}
-
 	 function changeImage(which)
 	 {
-    $("#mainImageinside").removeAttr('src');
-    $("#mainImageinside").load(function() {});
+		if(which == 1)
+		{
+			var start = document.getElementsByName('date1')[0].value; 
+			var locationString = "/webike/plotTripsOnDay?imei=" + {{ i }} + "&s=" + start;
+		}
 		if(which == 2)
 		{
-			var start = document.getElementsByName('date2')[0].value;
-      var numdays;
-      if ( document.getElementsByName('ndays')[0].value == "") numdays = 1;
-			else
-        var numdays = 
-        Math.floor((new Date(document.getElementsByName('ndays')[0].value) - 
-                    new Date(document.getElementsByName('date2')[0].value))
-                    /(1000*60*60*24))+1;
-      if (numdays < 0) {
-        alert("Start date must be less than end date!");
-        return;
-      }
+			var start = document.getElementsByName('date2')[0].value; 
+			var numdays = document.getElementsByName('ndays')[0].value; 
 			var locationString = "/webike/plotDistanceVsDay?imei=" + {{i}} + "&s=" + start + "&nd=" + numdays;
 		}
 		if(which == 3)
@@ -125,18 +82,8 @@ function closeLoadingPage() {
 		}
 		if(which == 4)
 		{
-			var start = document.getElementsByName('date4')[0].value;
-      var numdays;
-      if (document.getElementsByName('ndays2')[0].value == "") numdays = 1;
-      else 
-        numdays = 
-        Math.floor((new Date(document.getElementsByName('ndays2')[0].value) - 
-                    new Date(document.getElementsByName('date4')[0].value))
-                    /(1000*60*60*24))+1;
-      if (numdays < 0) {
-        alert("Start date must be less than end date!");
-        return;
-      }
+			var start = document.getElementsByName('date4')[0].value; 
+			var numdays = document.getElementsByName('ndays2')[0].value; 
 			var locationString = "/webike/plotTripLengthDistribution?imei=" + {{i}} + "&s=" + start + "&nd=" + numdays;
 		}
 		if(which == 5)
@@ -198,40 +145,14 @@ function closeLoadingPage() {
                          mapTypeId: google.maps.MapTypeId.ROADMAP
                         });
                         marker = [];
-                        //remove duplicated elelemnt in obj;
-                        for (i = 0; i < obj["lats"].length; i++) {
-                          for (j = 1; j < obj["lats"][i].length; j++){
-                            if (obj["stamps"][i][j] == obj["stamps"][i][j-1] 
-                            || (obj["lats"][i][j] == obj["lats"][i][j-1] && obj["longs"][i][j] == obj["longs"][i][j-1])
-                                ) {
-                                obj["stamps"][i].splice(j,1);
-                                obj["lats"][i].splice(j,1);
-                                obj["longs"][i].splice(j,1);
-                                j = j - 1;
-                            }
-                          }
-                        }
                         for (i = 0; i < obj["lats"].length; i++) {
                           for (j = 0; j < obj["lats"][i].length; j++){
                             marker.push(new google.maps.Marker({
                              position: new google.maps.LatLng(obj["lats"][i][j], obj["longs"][i][j]),
                              map: map,
-                             title:'Click to see time and speed'
+                             title:'Click to see time'
                               }));
                             contentString = obj["stamps"][i][j].toString();
-                            if (j != 0) {
-                                var distancediff = 
-                                    getDistanceFromLatLonInMeter(
-                                        obj["lats"][i][j], obj["longs"][i][j],
-                                        obj["lats"][i][j-1], obj["longs"][i][j-1]);
-                                var time2 = obj["stamps"][i][j].split(":");
-                                var time1 = obj["stamps"][i][j-1].split(":");
-                                var timediff =
-                                    Number(time2[0])*3600 + Number(time2[1])*60 + Number(time2[2]) - 
-                                    Number(time1[0])*3600 - Number(time1[1])*60 - Number(time1[2]);
-                                contentString = contentString + " " +
-                                                (distancediff/timediff).toFixed(2)+"m/s";//
-                            }
                             /*infowindow = new google.maps.InfoWindow({
                               content: contentString
                             });*/
@@ -277,14 +198,12 @@ function closeLoadingPage() {
 		
 		if(which != 6)
 		{
-      startLoadingPage();
 			$('#mainImageinside').attr('src', locationString);
 		    document.getElementById('map').style.display = 'none';
             document.getElementById('mainimage').style.display = 'block';
-      $( "#mainImageinside" ).load(function() {
-        closeLoadingPage();
-      });
 		}
+		
+		
 	}
     </script>
 
@@ -297,6 +216,9 @@ function closeLoadingPage() {
         $("#date6").datepicker();
     });
     $(document).ready(function () {
+        $("#date5").datepicker();
+    });
+    $(document).ready(function () {
         $("#date4").datepicker();
     });
     $(document).ready(function () {
@@ -306,10 +228,7 @@ function closeLoadingPage() {
         $("#date2").datepicker();
     });
     $(document).ready(function () {
-        $("#ndays").datepicker();
-    });
-    $(document).ready(function () {
-        $("#ndays2").datepicker();
+        $("#date1").datepicker();
     });
 
     </script>
@@ -317,67 +236,75 @@ function closeLoadingPage() {
 
         
   </head>
-<!--http://upload.wikimedia.org/wikipedia/commons/a/a7/HAPPI_Loading.gif-->
+
   <body>
+
+	<div style="width: 2000px; height: 50px;">
+	</div>
+	
+	
 	<div class="container">
   	<div class="jumbotron text-center">
     	<h1>{{name}}'s Dashboard</h1>
     	<p class="lead">Use this dashboard to visualize your hard work!</p>
     </div>
-    <div id="loadingPage" style="display:none;font-size:25px;color:red"><img src="http://blizzard.cs.uwaterloo.ca/~sensordc/bootstrap/loading.gif"><b>&nbsp;Loading image...Please wait. </b></div>
-    <div id="finishPage" style="display:none;font-size:25px;color:#59BA5B"><b>Finish loading! Please scroll down to see image.</b></div>
-    
+  
     <div class="row">
-     <div class="col-md-4">
-  		<div class="jumbotron text-center" style="height: 200px;">
-     		<h2>Km Per Day</h2>   
-            <nobr>Start Date:<input type="text" name="date2" id="date2" value="" onclick="clearInput('date2')"></nobr>
-      			<nobr>End Date:
-            <input type="text" name="ndays" id="ndays" value="">
-            </nobr>
-            (Leave end date blank for same day)
-      			<br><br>
-      		<a class="btn btn-large btn-success" onclick="changeImage(2);toggleTableOff();">Generate!</a><br>
-  		</div>
-   	</div>
     
+   		<div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+    	 	<h2>Trip Lengths</h2>          
+         	  Date: <input type="text" name="date1" id="date1" value=""><br><br>
+    		  <a class="btn btn-large btn-success" onclick="changeImage(1);toggleTableOff();">Generate!</a>
+  		</div>
+   		</div>
+  
+  
      <div class="col-md-4">
-  		<div class="jumbotron text-center" style="height:200px;">
-     		<h2><nobr>Lengths Distribution</nobr></h2>          
-          		<nobr>Start Date:<input type="text" name="date4" id="date4" value="" onclick="clearInput('date4')"></nobr>
-      			<nobr>End Date:&nbsp;&nbsp;<input type="text" name="ndays2" id="ndays2" value=""></nobr>
-            (Leave end date blank for same day)
-      			<br><br>
-      		<a class="btn btn-large btn-success" onclick="changeImage(4); toggleTableOff();">Generate!</a><br>
+  		<div class="jumbotron text-center" style="height: 250px;">
+     		<h2>Km Per Day</h2>          
+          		Date:<input type="text" name="date2" id="date2" value="">
+      			Num Days:<input type="text" name="ndays" id="ndays" value="">
+      			<br>
+      		<a class="btn btn-large btn-success" onclick="changeImage(2);toggleTableOff();">Generate!</a><br>
   		</div>
    	</div>
 
    		<div class="col-md-4">
-  		<div class="jumbotron text-center" style="height: 200px;">
+  		<div class="jumbotron text-center" style="height: 250px;">
     	 	<h2>Battery Charge</h2>          
-         	  Date:<input type="text" name="date3" id="date3" value="" onclick="clearInput('date3')"><br><br>
+         	  Date: <input type="text" name="date3" id="date3" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(3);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
       </div>
 
     <div class="row">
-        
-        <!--
+      
+      
+     <div class="col-md-4">
+  		<div class="jumbotron text-center" style="height: 250px;">
+     		<h2>Lengths Distribution</h2>          
+          		Date:<input type="text" name="date4" id="date4" value="">
+      			Num Days:<input type="text" name="ndays2" id="ndays2" value="">
+      			<br>
+      		<a class="btn btn-large btn-success" onclick="changeImage(4); toggleTableOff();">Generate!</a><br>
+  		</div>
+   	</div>
+
    		<div class="col-md-4">
-  		<div class="jumbotron text-center" style="height: 200px;">
+  		<div class="jumbotron text-center" style="height: 250px;">
 	    	 <h2>Speed On Day</h2>          
-         	  Date: <input type="text" name="date5" id="date5" value="" onclick="clearInput('date5')"><br><br>
+         	  Date: <input type="text" name="date5" id="date5" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(5);toggleTableOff();">Generate!</a>
   		</div>
    		</div>
-        -->
 
       
    		<div class="col-md-4">
-  		<div class="jumbotron text-center" style="height: 200px;">
+  		<div class="jumbotron text-center" style="height: 250px;">
     	 <h2>Plot Trips</h2>          
-         	  Date: <input type="text" name="date6" id="date6" value="" onclick="clearInput('date6')"><br><br>
+         	  Date: <input type="text" name="date6" id="date6" value=""><br><br>
     		  <a class="btn btn-large btn-success" onclick="changeImage(6);toggleTable();">Generate!</a>
   		</div>
    		</div>
@@ -404,20 +331,9 @@ function closeLoadingPage() {
       </div>
     <!-- Wrap the rest of the page in another container to center all the content. -->
           <div id="map" style="display: none; width:1080px; height:600px;"></div>
-          <div id = "mainimage" class="text-center"  style="display: none; width:1080px; height:800px;">
-          	<img id="mainImageinside" class="text-center" style="width:800px; height:500px;">
+          <div id = "mainimage" class="text-center"  style="display: none; width:1080px; height:900px;">
+          	<img id="mainImageinside" class="text-center" style="width:1080px; height:1000px;">
      	  </div>
-<script>
-inputList = ["date2","date3","date4","date6","ndays","ndays2"]
-  function clearInput(current) {
-    for(var i = 0; i < inputList.length;i++) {
-      if (current != inputList[i])
-        document.getElementById(inputList[i]).value = "";
-    }
-  }
-
-</script>
-
 
   </body>
 </html>

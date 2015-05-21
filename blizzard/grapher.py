@@ -143,8 +143,13 @@ def plotVoltage(dbc,imei,sMonth,sDay,sYear):
         plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
         buf.seek(0)
         return buf.read() 
-            
 
+def debugWrite(s):
+    f = open("bikelog.txt", "a");
+    f.write(s)
+    f.write("\n")
+    f.close()
+    
 def plotTripsOnDay(dbc,imei,sMonth,sDay,sYear):
     curDate = datetime(sYear,sMonth,sDay)
     end = curDate+timedelta(hours=23, minutes=59,seconds=59)
