@@ -108,6 +108,10 @@ def logout():
 def analyzer():
     return render_template('index.html', i=current_user.imei, name=current_user.name)
 
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    return render_template('dashboard.html', i=current_user.imei, name=current_user.name)
 
 @app.route('/plotTripsOnDay', methods=['GET'])
 @login_required
@@ -182,6 +186,30 @@ def googemapscoords():
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
     longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
     return json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps})
+
+
+########### NEW APIs ###########
+
+@app.route('/distanceVsDay', methods=['GET'])
+#@login_required
+def distanceVsDay():
+    imei = request.args.get('imei')
+    dt = request.args.get('s').split("/")
+    numdays = int(request.args.get('nd'))
+    ret = getDistanceVsDay(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
+    return Response(json.dumps(ret), mimetype='application/json')
+
+
+@app.route('/tripLengthDistribution', methods=['GET'])
+#@login_required
+def tripLengthDistribution():
+    imei = request.args.get('imei')
+    dt = request.args.get('s').split("/")
+    numdays = int(request.args.get('nd'))
+    ret = gettTripLengthDistribution(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
+    return Response(json.dumps(ret), mimetype='application/json')
+
+########### END of NEW APIs ###########
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000, host="blizzard.cs.uwaterloo.ca")

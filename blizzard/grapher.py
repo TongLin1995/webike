@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from compute import detectTrips, haversine
 import time
+import json
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
@@ -340,10 +341,6 @@ def plotTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
         plt.close() #THIS IS CRUCIAL SEE: http://stackoverflow.com/questions/26132693/matplotlib-saving-state-between-different-uses-of-io-bytesio
         buf.seek(0)
         return buf.read() 
-          
-      
-      
-
 
 
 def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
@@ -399,9 +396,76 @@ def plotDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
     buf.seek(0)
     return buf.read() 
 
+########### NEW APIs ###########
 
+def getDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
+    curDate = datetime(sYear,sMonth,sDay)
+    Xs = [i for i in range(0,numDays)]
+    Xlabs = []
+    Ycounts = []
+    Ys = []
+    CumYs = []
 
+    totalDistance = 0;
+    countTrips = 0;
+    for i in range(0,numDays):
+        Xlabs.append(curDate.strftime('%m/%d/%y'))
+        end = curDate+timedelta(hours=23, minutes=59,seconds=59)
+        tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)
+        dday = 0
+        cday = 0
+        for j in dists:
+            dday += j
+        
+        Ys.append(dday)
+        Ycounts.append(cday)
+        CumYs.append(dday if i == 0 else dday+CumYs[i-1])
+        curDate = curDate+timedelta(days=1)
 
+        # we want to add up total distances to calculate the average
+        if (dday > 0):
+            totalDistance += dday
+            countTrips += 1
+  
+    return { 
+        'xAxis' : Xlabs,
+        'distance' : Ys,
+        'cummulative' : CumYs,
+        'average' : totalDistance/countTrips
+    }
+
+def getTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
+    curDate = datetime(sYear,sMonth,sDay)
+    end = curDate+timedelta(days=numdays, hours=23, minutes=59,seconds=59)
+
+    tripStartTimes, tripEndTimes, dists = detectTrips(dbc,imei,curDate,end)
+    if len(dists) == 0:  
+        return { 
+            'xAxis' : [],
+            'yAxis' : []
+        }
+    else:
+        Xs = []
+        Xlabs = []  
+        Ys = [0,0,0,0,0,0,0,0,0,0]  
+        
+        for k in dists:
+            if k > 20:
+                Ys[9] += 1
+            else:
+                Ys[int(k / 2)] += 1
+                    
+        for i in range(0,10):
+            Xlabs.append("{0}-{1}".format(i*2,i*2+2))
+            Xs.append(i)
+        Xlabs[9] = "18-" 
+
+        return { 
+            'xAxis' : Xlabs,
+            'yAxis' : Ys
+        }
+
+########### END of NEW APIs ###########
 
 """google maps"""   
 def plotDay(dbc,imei,sYear,sMonth,sDay):
