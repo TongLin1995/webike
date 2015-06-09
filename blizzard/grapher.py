@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from compute import detectTrips, haversine
+from decimal import Decimal
 import time
 import json
 import matplotlib as mpl
@@ -417,21 +418,29 @@ def getDistanceVsDay(dbc,imei,sMonth,sDay,sYear,numDays):
         for j in dists:
             dday += j
         
-        Ys.append(dday)
+        # Convert to 2 dp before appending to array
+        yRounded = float(round(Decimal(dday), 2))
+
+        Ys.append(yRounded)
         Ycounts.append(cday)
-        CumYs.append(dday if i == 0 else dday+CumYs[i-1])
+        CumYs.append(yRounded if i == 0 else yRounded+CumYs[i-1])
         curDate = curDate+timedelta(days=1)
 
         # we want to add up total distances to calculate the average
         if (dday > 0):
             totalDistance += dday
             countTrips += 1
+
+    if countTrips == 0:
+        average = 0
+    else:
+        average = totalDistance/countTrips
   
     return { 
         'xAxis' : Xlabs,
         'distance' : Ys,
         'cummulative' : CumYs,
-        'average' : totalDistance/countTrips
+        'average' : average
     }
 
 def getTripLengthDistribution(dbc,imei,sMonth,sDay,sYear,numdays):
