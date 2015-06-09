@@ -1,7 +1,7 @@
 function loadChart(picker, i) {
     var start = picker.startDate.format('MM/DD/YYYY');
     var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
-    var url = "/distanceVsDay?imei=" + i+ "&s=" + start + "&nd=" + numdays;
+    var url = "/webike/distanceVsDay?imei=" + i+ "&s=" + start + "&nd=" + numdays;
     $.ajax({
     url: url
     }).success(function(data) {
