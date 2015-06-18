@@ -1,3 +1,6 @@
+{# set assets_repo = "/~sensordc/bootstrap" #}
+{% set assets_repo = "/static" %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,25 +15,28 @@
     <title>Dashboard</title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="../~sensordc/bootstrap/css/bootstrap.min.css" rel="stylesheet" rel="stylesheet">
+    <link href="{{assets_repo}}/css/bootstrap.min.css" rel="stylesheet" rel="stylesheet">
 
     <!-- MetisMenu CSS -->
-    <link href="../~sensordc/bootstrap/css/metisMenu.min.css" rel="stylesheet">
+    <link href="{{assets_repo}}/css/metisMenu.min.css" rel="stylesheet">
 
     <!-- Timeline CSS -->
-    <link href="../~sensordc/bootstrap/css/timeline.css" rel="stylesheet">
+    <link href="{{assets_repo}}/css/timeline.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="../~sensordc/bootstrap/css/sb-admin-2.css" rel="stylesheet">
+    <link href="{{assets_repo}}/css/sb-admin-2.css" rel="stylesheet">
 
     <!-- Custom Fonts -->
-    <link href="../~sensordc/bootstrap/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="{{assets_repo}}/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
     <!-- Date Range picker-->
-    <link href="../~sensordc/bootstrap/css/daterangepicker-bs3.css" rel="stylesheet">
+    <link href="{{assets_repo}}/css/daterangepicker-bs3.css" rel="stylesheet">
 
     <!-- Datatables -->
     <link href="https://cdn.datatables.net/plug-ins/1.10.7/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet">
+
+    <!-- Spinner -->
+    <link rel="stylesheet" href="http://css-spinners.com/css/spinner/dots.css" type="text/css">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -81,31 +87,37 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="../~sensordc/bootstrap/js/bootstrap.min.js"></script>
+    <script src="{{assets_repo}}/js/bootstrap.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="../~sensordc/bootstrap/js/metisMenu.min.js"></script>
+    <script src="{{assets_repo}}/js/metisMenu.min.js"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="../~sensordc/bootstrap/js/sb-admin-2.js"></script>
+    <script src="{{assets_repo}}/js/sb-admin-2.js"></script>
 
     <!-- Moment JavaScript -->
-    <script src="../~sensordc/bootstrap/js/moment.min.js"></script>
+    <script src="{{assets_repo}}/js/moment.min.js"></script>
 
     <!-- Date Picker JavaScript -->
-    <script src="../~sensordc/bootstrap/js/daterangepicker.js"></script>
+    <script src="{{assets_repo}}/js/daterangepicker.js"></script>
 
     <!-- highcharts -->
     <script src="http://code.highcharts.com/highcharts.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
 
+    <!-- Google Maps -->
+    <script src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
+
     <!-- datatables -->
     <script src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
 
-    <script src="../~sensordc/bootstrap/js/charts.js"></script>
+    <script src="{{assets_repo}}/js/charts.js"></script>
 
     <script type = "text/javascript">
         $(document).ready(function() {
+
+            // Date Ranger Picker
+
             $('#daterange').daterangepicker({ 
                 format: 'YYYY-MM-DD',
                 startDate: moment().startOf('month'), 
@@ -118,15 +130,59 @@
             picker.setEndDate(moment().endOf('month'));
 
             loadChart(picker, {{i}});
+            
 
             $('#daterange').on('apply.daterangepicker', function(ev, picker) {
                 loadChart(picker, {{i}});
             });
 
-            // Table
-            $('#datatable').DataTable({
-                "bJQueryUI": true
+
+            // Single Date Picker
+
+            $('#singleDateRange').daterangepicker({ 
+                format: 'YYYY-MM-DD',
+                singleDatePicker: true,
+                showDropdowns: true
             });
+
+            var singlePicker = $('#singleDateRange').data('daterangepicker');
+
+            // Table
+            var datatable = $('#datatable').DataTable({
+              "bJQueryUI": true,
+              "bFilter"  : false
+            });
+
+            $('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
+                $('.dots-loader').css("display", "block");
+                $('#trips-container').hide();
+                mapTrips(datatable, singlePicker, {{i}});
+                 
+            });
+
+            // Metrics selection at top
+            $('.distance-heading').click(function() {
+                $('#container').show();
+                $('#trips-container').hide();
+                $('#daterange').show();
+                $('#singleDateRange').hide();
+                $('.dots-loader').hide();
+            });
+
+            $('.trip-heading').click(function() {
+                $('#container').hide();
+                $('#daterange').hide();
+                $('#singleDateRange').show();
+
+                if (!$('#trips-container').has('.gm-style').length) {
+                    $('.dots-loader').css("display", "block");
+                    mapTrips(datatable, singlePicker, {{i}});
+                } else {
+                    $('#trips-container').show();
+                }
+            });
+
+            
 
         });
     </script>

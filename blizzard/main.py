@@ -36,7 +36,6 @@ USERS = dict()
 
 login_manager.setup_app(app)
 
-
 @app.before_request
 def db_connect():
     g.dbc = databaseConnector()
@@ -111,7 +110,7 @@ def analyzer():
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html', i=current_user.imei, name=current_user.name)
+    return render_template('index.html', i=current_user.imei, name=current_user.name)
 
 @app.route('/plotTripsOnDay', methods=['GET'])
 @login_required
@@ -191,7 +190,7 @@ def googemapscoords():
 ########### NEW APIs ###########
 
 @app.route('/distanceVsDay', methods=['GET'])
-#@login_required
+@login_required
 def distanceVsDay():
     imei = request.args.get('imei')
     dt = request.args.get('s').split("/")
@@ -201,13 +200,24 @@ def distanceVsDay():
 
 
 @app.route('/tripLengthDistribution', methods=['GET'])
-#@login_required
+@login_required
 def tripLengthDistribution():
     imei = request.args.get('imei')
     dt = request.args.get('s').split("/")
     numdays = int(request.args.get('nd'))
     ret = gettTripLengthDistribution(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
     return Response(json.dumps(ret), mimetype='application/json')
+
+
+@app.route('/tripCoords', methods=['GET'])
+@login_required
+def tripCoords():
+    imei = request.args.get('imei')  # also accepted in URL, but defaults to 1
+    dt = request.args.get('date').split("/")  # also accepted in URL, but defaults to 1
+    curdate = datetime(int(dt[2].replace("\"", "")), int(dt[0]), int(dt[1].replace("\"", "")))
+    end = curdate + timedelta(hours=23, minutes=59, seconds=59)
+    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
+    return Response(json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps}), mimetype='application/json')
 
 ########### END of NEW APIs ###########
 

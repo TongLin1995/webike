@@ -296,7 +296,7 @@ table.dataTable thead .sorting:after {
 }
 
 .huge {
-    font-size: 40px;
+    font-size: 30px;
 }
 
 .panel-green {
@@ -358,22 +358,30 @@ table.dataTable thead .sorting:after {
     width: 100%;
 }
 
-#daterange {
+#daterange, #singleDateRange {
     width: 250px;
 }
 
 .distance-heading:hover {
     background-color: #285f8f;
+    cursor: pointer;
 }
 
 .trip-heading:hover {
     background-color: #449d44;
+    cursor: pointer;
 }
 
 .voltage-heading:hover {
     background-color: #ec971f;
+    cursor: pointer;
 }
 
 .soc-heading:hover {
     background-color: #c9302c;
+    cursor: pointer;
+}
+
+.dots-loader {
+    margin: 200px auto 0;
 }
