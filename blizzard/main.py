@@ -110,7 +110,7 @@ def analyzer():
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
-    return render_template('index.html', i=current_user.imei, name=current_user.name)
+    return render_template('dashboard.html', i=current_user.imei, name=current_user.name)
 
 @app.route('/plotTripsOnDay', methods=['GET'])
 @login_required
