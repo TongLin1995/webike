@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 from databaseConnector import *
 from datetime import datetime
-from compute import haversine, detectTrips
+from compute import haversine
+from tripDetection import TripDetection
 import matplotlib.pyplot as plt
 
 
@@ -41,7 +42,6 @@ def increaseCC(cc, maxi, mini, distances):  # pass: list of connected components
     while (cc[len(cc)-1][0] not in maxi) and cc[len(cc)-1][0] != cc[len(cc)-2][2]:
         cc[len(cc)-1][0] -= 1
     return cc
-
 
 # Joins connected components when they share a local maxima and also returns the bars (ranges) identified
 def joinCC(cc, distances):
@@ -91,7 +91,7 @@ def gpsSimplification(lon, lat, stamps, beta):
         cc.append([i, i, i])
 
     # while there is more than one connected component keep joining component together
-    while(len(cc) != 1):
+    while(len(cc) > 1):
         barTemporary = []
         cc = increaseCC(cc, maxi, mini, distances)
         barTemporary, cc = joinCC(cc, distances)
@@ -112,8 +112,8 @@ def gpsSimplification(lon, lat, stamps, beta):
     # deleting equal values
     valuesTemp2 = []
     for i in range(1, len(valuesTemp)):
-   		if distances[valuesTemp[i]] != distances[valuesTemp[i-1]]:
-   			valuesTemp2.append(valuesTemp[i])
+        if distances[valuesTemp[i]] != distances[valuesTemp[i-1]]:
+            valuesTemp2.append(valuesTemp[i])
 
     # copying only remaining points
     finalValues = []
@@ -154,13 +154,18 @@ def totalDistance(dist):
 def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
     curDate = datetime(syear, smonth, sday, 0, 0, 0)
     endDate = datetime(syear, smonth, sday, 23, 59, 59)
+    tripDetector = TripDetection()
+    tripStartTimes, tripEndTimes = tripDetector.detect_trips(dbc, imei, curDate, endDate)
+
+    return get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes)
+
+
+def get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes):
     newLon = []
     newLat = []
     newStamp = []
-    # obtaining the trips in one day
-    tripStartTimes, tripEndTimes, dists = detectTrips(dbc, imei, curDate, endDate)
-    if (len(tripStartTimes) > 0):
-        #obtaining the data about all trips and then copying it to the arrays containing this information
+    if len(tripStartTimes) > 0:
+        # obtaining the data about all trips and then copying it to the arrays containing this information
         for tripNumber in range(len(tripStartTimes)):
             lat = []
             lon = []
@@ -173,33 +178,39 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
                 stamps.append(l[0])
                 lat.append(l[1])
                 lon.append(l[2])
-            tempLon, tempLat, tempStamp = gpsSimplification(lon, lat, stamps, beta)
-            newLon.append(tempLon)
-            newLat.append(tempLat)
-            newStamp.append(tempStamp)
+            if len(lat) > 0 and len(lat) > 0:
+                tempLon, tempLat, tempStamp = gpsSimplification(lon, lat, stamps, beta)
+                newLon.append(tempLon)
+                newLat.append(tempLat)
+                newStamp.append(tempStamp)
+            else:
+                newLon.append(None)
+                newLat.append(None)
+                newStamp.append(None)
         dist = []
         for i in range(len(newLon)):
-            dist.append(totalDistance(haversineDistance(newLon[i], newLat[i])))
+            if newLon[i] is not None and newLat[i] is not None:
+                dist.append(totalDistance(haversineDistance(newLon[i], newLat[i])))
 
-        #calculating total time of every trip detected
+        # calculating total time of every trip detected
         totalTime = []
         for i in range(len(tripStartTimes)):
-            totalTime.append((tripEndTimes[i]-tripStartTimes[i]).total_seconds()/60)
-        
-        #converting start and end times to string to put them in json format
+            totalTime.append((tripEndTimes[i] - tripStartTimes[i]).total_seconds() / 60)
+
+        # converting start and end times to string to put them in json format
         startStr = []
         endStr = []
         for i in range(len(tripEndTimes)):
             startStr.append(tripStartTimes[i].strftime('%H:%M'))
             endStr.append(tripEndTimes[i].strftime('%H:%M'))
-        #converting stamps to string to put them in json format
+        # converting stamps to string to put them in json format
         stampsStr = []
         for i in range(len(newStamp)):
             tempStampStr = []
-            for j in range(len(newStamp[i])):
-                tempStampStr.append(newStamp[i][j].strftime('%H:%M:%S'))
+            if newStamp[i] is not None:
+                for j in range(len(newStamp[i])):
+                    tempStampStr.append(newStamp[i][j].strftime('%H:%M:%S'))
             stampsStr.append(tempStampStr)
-
         return newLon, newLat, startStr, endStr, dist, totalTime, stampsStr
     else:
         newLon = []
