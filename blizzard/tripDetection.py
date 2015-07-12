@@ -73,12 +73,11 @@ class TripDetection:
         for i, j in zip(self.start_times, self.end_times):
             time = (j - i).total_seconds()/3600
             _, _, _, _,distance, _, _ = trajectory.get_trajectory_information(dbc, imei, beta, [i], [j])
-            speed = 0
             if distance:
                 speed = distance[0] / time
-            if speed > self.max_avg_speed or distance is []:
-                self.start_times.remove(i)
-                self.end_times.remove(j)
+                if speed > self.max_avg_speed:
+                    self.start_times.remove(i)
+                    self.end_times.remove(j)
 
     def start_trip(self, start_time):
         self.trip_started = True
