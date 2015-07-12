@@ -51,13 +51,13 @@ def joinCC(cc, distances):
     joined = [] # keeping track of the joined cc
     for i in range(len(cc) - 1):
         if cc[i][2] == cc[i + 1][0] and i not in joined:
-            if(distances[cc[i][1]] > distances[cc[i + 1][1]]):
+            if distances[cc[i][1]] > distances[cc[i + 1][1]]:
                 barTemp.append(cc[i])  # append the non-surviving cc to the list of bars
-                copycc[i + 1][0] = c[i][0]  # change value of the last point of the cc that remains
-                if ((i+1) not in keep):
+                copycc[i + 1][0] = cc[i][0]  # change value of the last point of the cc that remains
+                if (i+1) not in keep:
                     keep.append(i + 1)  # saving the one that should stay-contrary to the one that should be deleted
                 joined.append(i)
-                joined.appendfinished (i+1)
+                joined.append(i+1)
             else:
                 barTemp.append(cc[i+1])  # append the non-surviving cc to the list of bars
                 copycc[i][2] = cc[i + 1][2]  # change value of the first point of the cc that remains
