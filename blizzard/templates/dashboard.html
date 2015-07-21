@@ -102,7 +102,7 @@
     <script src="{{assets_repo}}/js/daterangepicker.js"></script>
 
     <!-- highcharts -->
-    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <script src="http://code.highcharts.com/stock/highstock.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
 
     <!-- Google Maps -->
@@ -149,40 +149,51 @@
 
             // Table
             var datatable = $('#datatable').DataTable({
-              "bJQueryUI": true,
-              "bFilter"  : false
-            });
+                "bJQueryUI": true,
+                "bFilter"  : false,
+                "columnDefs": [ { "targets": 7, "orderable": false } ],
+                "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+                  if ( aData[5] == 1 ) {
+                    $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'" checked>' );
+                  } else {
+                    $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'">' );
+                  }
 
-            $('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
-                $('.dots-loader').css("display", "block");
-                $('#trips-container').hide();
-                mapTrips(datatable, singlePicker, {{i}});
-                 
-            });
+                  $('td:eq(6)', nRow).html('<input type="text" value="'+ aData[6] +'" id="comment_'+ aData[0] +'">' );
 
-            // Metrics selection at top
-            $('.distance-heading').click(function() {
-                $('#container').show();
-                $('#trips-container').hide();
-                $('#daterange').show();
-                $('#singleDateRange').hide();
-                $('.dots-loader').hide();
-            });
-
-            $('.trip-heading').click(function() {
-                $('#container').hide();
-                $('#daterange').hide();
-                $('#singleDateRange').show();
-
-                if (!$('#trips-container').has('.gm-style').length) {
-                    $('.dots-loader').css("display", "block");
-                    mapTrips(datatable, singlePicker, {{i}});
-                } else {
-                    $('#trips-container').show();
+                  $('td:eq(7)', nRow).html('<button type="button" data-loading-text="Updating" class="btn btn-success btn-save-datatable" autocomplete="off" data="'+aData[0]+'">Save</button>');
+                },
+                "fnDrawCallback": function( oSettings ) {
+                    addClickToSave({{i}}, datatable); // add on click event to isExcluded radio button to trigger ajax request
                 }
             });
 
-            
+            $('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
+                if ($('.trip-heading').hasClass('selected')) {
+                    mapTrips(datatable, singlePicker, {{i}});
+                } else {
+                    loadSOCChart(singlePicker, {{i}});
+                }
+            });
+
+            // Metrics selection at top
+            $('.panel-heading').click(function() {
+                $('.panel-heading').removeClass('selected');
+                $(this).addClass('selected');
+
+                $('#container').toggle($(this).hasClass('distance-heading'));
+                $('#trips-container').toggle($(this).hasClass('trip-heading') && $('#trips-container').has('.gm-style').length);
+                $('#soc-container').toggle($(this).hasClass('soc-heading') && $('#soc-container').has('.highcharts-container').length);
+
+                $('#daterange').toggle($(this).hasClass('distance-heading'));
+                $('#singleDateRange').toggle($(this).hasClass('trip-heading') || $(this).hasClass('soc-heading'));
+
+                if (!$('#trips-container').has('.gm-style').length) {
+                    mapTrips(datatable, singlePicker, {{i}});
+                } else if (!$('#soc-container').has('.highcharts-container').length) {
+                    loadSOCChart(singlePicker, {{i}});
+                }
+            });
 
         });
     </script>

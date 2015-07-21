@@ -205,7 +205,7 @@ def tripLengthDistribution():
     imei = request.args.get('imei')
     dt = request.args.get('s').split("/")
     numdays = int(request.args.get('nd'))
-    ret = gettTripLengthDistribution(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
+    ret = getTripLengthDistribution(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")), numdays)
     return Response(json.dumps(ret), mimetype='application/json')
 
 
@@ -216,8 +216,31 @@ def tripCoords():
     dt = request.args.get('date').split("/")  # also accepted in URL, but defaults to 1
     curdate = datetime(int(dt[2].replace("\"", "")), int(dt[0]), int(dt[1].replace("\"", "")))
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
+    #longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps, isAccurate, comments, tripIDs = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
     longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
-    return Response(json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps}), mimetype='application/json')
+    return Response(json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps, "isAccurate":[], "comments":[], "tripIDs":[]}), mimetype='application/json')
+
+@app.route('/updateTripComments', methods=['POST'])
+@login_required
+def updateTripComments():
+    data = request.form
+    imei = data.get('imei')
+    tripId = data.get('id')
+    isAccurate = data.get('isAccurate')
+    comment = data.get('comment')
+
+    stmt = "update trip{0} set isAccurate={1}, comments='{2}' where id = {3}".format(imei, isAccurate, comment, tripId)
+    g.dbc.SQLExecQuery(stmt)
+
+    return Response(json.dumps({"imei": imei}))
+
+@app.route('/socEstimation', methods=['GET'])
+@login_required
+def socEstimation():
+    imei = request.args.get('imei')
+    dt = request.args.get('s').split("/")
+    ret = getSOCEstimation(g.dbc, imei, int(dt[0].replace("\"", "")), int(dt[1]), int(dt[2].replace("\"", "")))
+    return Response(json.dumps(ret), mimetype='application/json')
 
 ########### END of NEW APIs ###########
 

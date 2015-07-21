@@ -1,7 +1,8 @@
+/* Trips Chart */
 function loadChart(picker, i) {
     var start = picker.startDate.format('MM/DD/YYYY');
     var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
-    var url = "/webike/distanceVsDay?imei=" + i+ "&s=" + start + "&nd=" + numdays;
+    var url = "/distanceVsDay?imei=" + i+ "&s=" + start + "&nd=" + numdays;
     $.ajax({
         url: url
     }).success(function(data) {
@@ -51,11 +52,15 @@ function loadChart(picker, i) {
     });
 }
 
+/* Trips Google Map */
 var colors = ["#504B4B", "#00FF00", "#0000FF", "#000000", "#FFFF00", "#00FFFF", "#FF00FF", "#FFE4C4", "#A52A2A", "#5F9EA0", "#FF7F50", "#DC143C", "#008B8B", "#B8860B", "#BDB76B", "#556B2F", "#483D8B", "#1E90FF"];
 function mapTrips(datatable, picker, imei) {
 
+    $('#trips-container').hide();
+    $('.dots-loader').css("display", "block");
+
     var date = picker.startDate.format('MM/DD/YYYY');
-    var url = "/webike/tripCoords?imei=" + imei + "&date=" + date;
+    var url = "/tripCoords?imei=" + imei + "&date=" + date;
 
     $.ajax({
         url: url
@@ -63,6 +68,7 @@ function mapTrips(datatable, picker, imei) {
 
         $('.dots-loader').hide();
         $('#trips-container').show();
+        datatable.clear(); // remove all data from table
 
         // init map
         var mapOptions = {
@@ -121,16 +127,102 @@ function mapTrips(datatable, picker, imei) {
 
         // tables
         var tableRows = [];
+        var tripId = data.tripIDs;
         var startTime = data.start;
-        var endTime = data.end;
-        var tt = data.ttime;
-        var distance = data.d;
+        var endTime   = data.end;
+        var tt        = data.ttime;
+        var distance  = data.d;
+        var isAccurate = data.isAccurate;
+        var comments  = data.comments;
 
         for (var i = 0; i < numTrips; i++) {
-            tableRows.push([i+1, startTime[i], endTime[i], tt[i].toFixed(2), distance[i].toFixed(2)]);
+            tableRows.push([
+                tripId[i], 
+                startTime[i], 
+                endTime[i], 
+                tt[i].toFixed(2), 
+                distance[i].toFixed(2), 
+                isAccurate[i], 
+                comments[i],
+                null
+                ]);
         }
 
         datatable.rows.add(tableRows).draw();
       });
 
+}
+
+function addClickToSave(imei, datatable) {
+
+    $('.btn-save-datatable').click(function(){
+
+        var $btn = $(this).button('loading')
+        var tripID = $btn.attr("data")
+        var $isAccurate = $('#isAccurate_' + tripID);
+        var $comment = $('#comment_' + tripID);
+
+        var tr = $(this).closest('tr');
+        var rowIndex = datatable.row( tr[0] ).index();
+        
+        var url = "/updateTripComments";
+
+        var jqxhr = $.post( url, { imei: imei, id: tripID, isAccurate: $isAccurate.prop('checked'), comment: $comment.val() })
+          .done(function() {
+            datatable.cell(rowIndex, 5).data($isAccurate.prop('checked')).draw();
+            datatable.cell(rowIndex, 6).data($comment.val()).draw();
+          })
+          .fail(function() {
+            alert( "Failed to update the trip info." );
+          });
+
+        return false;
+    });
+
+}
+
+/* SOC Estimation Chart */
+function loadSOCChart(picker, i) {
+
+    $('#soc-container').hide();
+    $('.dots-loader').css("display", "block");
+
+    Highcharts.setOptions({
+        global: {
+            timezoneOffset: 4 * 60
+        }
+    });
+
+    var start = picker.startDate.format('MM/DD/YYYY');
+    var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
+    var url = "/socEstimation?imei=" + i+ "&s=" + start + "&nd=" + numdays;
+    $.ajax({
+        url: url
+    }).success(function(data) {
+
+        $('.dots-loader').hide();
+        $('#soc-container').show();
+
+        // Create the chart
+        $('#soc-container').highcharts('StockChart', {
+            credits: {
+                enabled: false
+            },
+            rangeSelector: {
+                enabled: false
+            },
+            yAxis: {
+                title: {
+                    text: 'SOC Estimation (%)'
+                }
+            },
+
+            series: [{
+                name: 'Temperature',
+                data: data.yAxis
+            }]
+        // Set average distance
+        //$('#distance').text(Math.round(data.average) + " km");
+        });
+    });
 }
