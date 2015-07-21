@@ -2,7 +2,7 @@
 function loadChart(picker, i) {
     var start = picker.startDate.format('MM/DD/YYYY');
     var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
-    var url = "/distanceVsDay?imei=" + i+ "&s=" + start + "&nd=" + numdays;
+    var url = "/webike/distanceVsDay?imei=" + i+ "&s=" + start + "&nd=" + numdays;
     $.ajax({
         url: url
     }).success(function(data) {
@@ -60,7 +60,7 @@ function mapTrips(datatable, picker, imei) {
     $('.dots-loader').css("display", "block");
 
     var date = picker.startDate.format('MM/DD/YYYY');
-    var url = "/tripCoords?imei=" + imei + "&date=" + date;
+    var url = "/webike/tripCoords?imei=" + imei + "&date=" + date;
 
     $.ajax({
         url: url
@@ -165,7 +165,7 @@ function addClickToSave(imei, datatable) {
         var tr = $(this).closest('tr');
         var rowIndex = datatable.row( tr[0] ).index();
         
-        var url = "/updateTripComments";
+        var url = "/webike/updateTripComments";
 
         var jqxhr = $.post( url, { imei: imei, id: tripID, isAccurate: $isAccurate.prop('checked'), comment: $comment.val() })
           .done(function() {
@@ -195,7 +195,7 @@ function loadSOCChart(picker, i) {
 
     var start = picker.startDate.format('MM/DD/YYYY');
     var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
-    var url = "/socEstimation?imei=" + i+ "&s=" + start + "&nd=" + numdays;
+    var url = "/webike/socEstimation?imei=" + i+ "&s=" + start + "&nd=" + numdays;
     $.ajax({
         url: url
     }).success(function(data) {
