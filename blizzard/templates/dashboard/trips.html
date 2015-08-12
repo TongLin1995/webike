@@ -1,0 +1,84 @@
+{% extends "dashboard.html" %}
+
+{% block filter %}
+<input type="text" class="form-control"  id="singleDateRange" placeholder="Choose date" aria-describedby="basic-addon1">
+{% endblock %}
+
+{% block content %}
+<div id="trips-container" style="width:100%; height:400px; display:none;"></div>
+{% endblock %}
+
+{% block table %}
+<!-- /.panel -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <i class="fa fa-bar-chart-o fa-fw"></i> Data
+    </div>
+    <!-- /.panel-heading -->
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped" id="datatable">
+                        <thead>
+                            <tr>
+                                <th>Trip #</th>
+                                <th>Start time</th>
+                                <th>End time</th>
+                                <th>Time Taken (mins)</th>
+                                <th>Distance (km)</th>
+                                <th>Accurate?</th>
+                                <th>Comments</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.col-lg-8 (nested) -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.panel-body -->
+</div>
+{% endblock table %}
+
+<script type = "text/javascript">
+{% block javascript %}
+$('#singleDateRange').daterangepicker({ 
+    format: 'YYYY-MM-DD',
+    singleDatePicker: true,
+    showDropdowns: true
+});
+
+// Table
+var datatable = $('#datatable').DataTable({
+    "bJQueryUI": true,
+    "bFilter"  : false,
+    "columnDefs": [ { "targets": 7, "orderable": false } ],
+    "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+      if ( aData[5] == 1 ) {
+        $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'" checked>' );
+      } else {
+        $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'">' );
+      }
+
+      $('td:eq(6)', nRow).html('<input type="text" value="'+ aData[6] +'" id="comment_'+ aData[0] +'">' );
+
+      $('td:eq(7)', nRow).html('<button type="button" data-loading-text="Updating" class="btn btn-success btn-save-datatable" autocomplete="off" data="'+aData[0]+'">Save</button>');
+    },
+    "fnDrawCallback": function( oSettings ) {
+        addClickToSave({{i}}, datatable); // add on click event to isExcluded radio button to trigger ajax request
+    }
+});
+
+var singlePicker = $('#singleDateRange').data('daterangepicker');
+$('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
+    mapTrips(datatable, singlePicker, {{i}});
+});
+
+mapTrips(datatable, singlePicker, {{i}});
+
+{% endblock %}
+</script>

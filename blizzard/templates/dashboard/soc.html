@@ -1,0 +1,26 @@
+{% extends "dashboard.html" %}
+
+{% block filter %}
+<input type="text" class="form-control"  id="singleDateRange" placeholder="Choose date" aria-describedby="basic-addon1">
+{% endblock %}
+
+{% block content %}
+<div id="soc-container" style="width:100%; height:400px; display:none;"></div>
+{% endblock %}
+
+<script type = "text/javascript">
+{% block javascript %}
+$('#singleDateRange').daterangepicker({ 
+    format: 'YYYY-MM-DD',
+    singleDatePicker: true,
+    showDropdowns: true
+});
+
+var singlePicker = $('#singleDateRange').data('daterangepicker');
+$('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
+    loadSOCChart(singlePicker, {{i}});
+});
+
+loadSOCChart(singlePicker, {{i}});
+{% endblock %}
+</script>

@@ -1,6 +1,3 @@
-{% set assets_repo = "/~sensordc/bootstrap" %}
-{# set assets_repo = "/static" #}
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,22 +12,22 @@
     <title>Dashboard</title>
 
     <!-- Bootstrap Core CSS -->
-    <link href="{{assets_repo}}/css/bootstrap.min.css" rel="stylesheet" rel="stylesheet">
+    <link href="{{assets_path}}/css/bootstrap.min.css" rel="stylesheet" rel="stylesheet">
 
     <!-- MetisMenu CSS -->
-    <link href="{{assets_repo}}/css/metisMenu.min.css" rel="stylesheet">
+    <link href="{{assets_path}}/css/metisMenu.min.css" rel="stylesheet">
 
     <!-- Timeline CSS -->
-    <link href="{{assets_repo}}/css/timeline.css" rel="stylesheet">
+    <link href="{{assets_path}}/css/timeline.css" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link href="{{assets_repo}}/css/sb-admin-2.css" rel="stylesheet">
+    <link href="{{assets_path}}/css/sb-admin-2.css" rel="stylesheet">
 
     <!-- Custom Fonts -->
-    <link href="{{assets_repo}}/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="{{assets_path}}/css/font-awesome.min.css" rel="stylesheet" type="text/css">
 
     <!-- Date Range picker-->
-    <link href="{{assets_repo}}/css/daterangepicker-bs3.css" rel="stylesheet">
+    <link href="{{assets_path}}/css/daterangepicker-bs3.css" rel="stylesheet">
 
     <!-- Datatables -->
     <link href="https://cdn.datatables.net/plug-ins/1.10.7/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet">
@@ -67,12 +64,40 @@
             <div class="row">
                 <div class="col-lg-8">
 
-                    {% include 'dashboard/filters.html' %}
+                    <!-- Filters -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-filter fa-fw"></i> Filters
+                            <div class="pull-right">
+                            </div>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <!-- Filter Content -->
+                            <div class="input-group">
+                                {% block filter %}{% endblock %}
+                            </div>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
 
-                    {% include 'dashboard/charts.html' %}
-
-                    {% include 'dashboard/tables.html' %}
-
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <i class="fa fa-bar-chart-o fa-fw"></i> Charts
+                            <div class="pull-right">
+                            </div>
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body" style="height: 425px">
+                            <div class="dots-loader" style="display:none; margin: 200px auto 0;">
+                                Loading…
+                            </div>
+                            {% block content %}{% endblock %}
+                            <div id="soc-container" style="width:100%; height:400px; display:none;"></div>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    {% block table %}{% endblock %}
                 </div>
                 <!-- /.col-lg-8 -->
             </div>
@@ -87,19 +112,19 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="{{assets_repo}}/js/bootstrap.min.js"></script>
+    <script src="{{assets_path}}/js/bootstrap.min.js"></script>
 
     <!-- Metis Menu Plugin JavaScript -->
-    <script src="{{assets_repo}}/js/metisMenu.min.js"></script>
+    <script src="{{assets_path}}/js/metisMenu.min.js"></script>
 
     <!-- Custom Theme JavaScript -->
-    <script src="{{assets_repo}}/js/sb-admin-2.js"></script>
+    <script src="{{assets_path}}/js/sb-admin-2.js"></script>
 
     <!-- Moment JavaScript -->
-    <script src="{{assets_repo}}/js/moment.min.js"></script>
+    <script src="{{assets_path}}/js/moment.min.js"></script>
 
     <!-- Date Picker JavaScript -->
-    <script src="{{assets_repo}}/js/daterangepicker.js"></script>
+    <script src="{{assets_path}}/js/daterangepicker.js"></script>
 
     <!-- highcharts -->
     <script src="http://code.highcharts.com/stock/highstock.js"></script>
@@ -111,88 +136,24 @@
     <!-- datatables -->
     <script src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
 
-    <script src="{{assets_repo}}/js/charts.js"></script>
+    <script src="{{assets_path}}/js/charts.js"></script>
 
     <script type = "text/javascript">
         $(document).ready(function() {
 
-            // Date Ranger Picker
-
-            $('#daterange').daterangepicker({ 
-                format: 'YYYY-MM-DD',
-                startDate: moment().startOf('month'), 
-                endDate: moment().endOf('month') 
-            });
-
-            var picker = $('#daterange').data('daterangepicker');
-            
-            picker.setStartDate(moment().startOf('month'));
-            picker.setEndDate(moment().endOf('month'));
-
-            loadChart(picker, {{i}});
-            
-
-            $('#daterange').on('apply.daterangepicker', function(ev, picker) {
-                loadChart(picker, {{i}});
-            });
-
-
-            // Single Date Picker
-
-            $('#singleDateRange').daterangepicker({ 
-                format: 'YYYY-MM-DD',
-                singleDatePicker: true,
-                showDropdowns: true
-            });
-
-            var singlePicker = $('#singleDateRange').data('daterangepicker');
-
-            // Table
-            var datatable = $('#datatable').DataTable({
-                "bJQueryUI": true,
-                "bFilter"  : false,
-                "columnDefs": [ { "targets": 7, "orderable": false } ],
-                "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
-                  if ( aData[5] == 1 ) {
-                    $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'" checked>' );
-                  } else {
-                    $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'">' );
-                  }
-
-                  $('td:eq(6)', nRow).html('<input type="text" value="'+ aData[6] +'" id="comment_'+ aData[0] +'">' );
-
-                  $('td:eq(7)', nRow).html('<button type="button" data-loading-text="Updating" class="btn btn-success btn-save-datatable" autocomplete="off" data="'+aData[0]+'">Save</button>');
-                },
-                "fnDrawCallback": function( oSettings ) {
-                    addClickToSave({{i}}, datatable); // add on click event to isExcluded radio button to trigger ajax request
-                }
-            });
-
-            $('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
-                if ($('.trip-heading').hasClass('selected')) {
-                    mapTrips(datatable, singlePicker, {{i}});
-                } else {
-                    loadSOCChart(singlePicker, {{i}});
-                }
-            });
+            {% block javascript %}{% endblock %}
 
             // Metrics selection at top
-            $('.panel-heading').click(function() {
-                $('.panel-heading').removeClass('selected');
-                $(this).addClass('selected');
+            $('.distance-heading').click(function() {
+                window.location = "/dashboard";
+            });
 
-                $('#container').toggle($(this).hasClass('distance-heading'));
-                $('#trips-container').toggle($(this).hasClass('trip-heading') && $('#trips-container').has('.gm-style').length);
-                $('#soc-container').toggle($(this).hasClass('soc-heading') && $('#soc-container').has('.highcharts-container').length);
+            $('.trip-heading').click(function() {
+                window.location = "/dashboard/trips";
+            });
 
-                $('#daterange').toggle($(this).hasClass('distance-heading'));
-                $('#singleDateRange').toggle($(this).hasClass('trip-heading') || $(this).hasClass('soc-heading'));
-
-                if (!$('#trips-container').has('.gm-style').length) {
-                    mapTrips(datatable, singlePicker, {{i}});
-                } else if (!$('#soc-container').has('.highcharts-container').length) {
-                    loadSOCChart(singlePicker, {{i}});
-                }
+            $('.soc-heading').click(function() {
+                window.location = "/dashboard/soc";
             });
 
         });

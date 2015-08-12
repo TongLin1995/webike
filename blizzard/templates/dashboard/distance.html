@@ -1,0 +1,31 @@
+{% extends "dashboard.html" %}
+
+{% block filter %}
+<input type="text" class="form-control"  id="daterange" placeholder="Date range" aria-describedby="basic-addon1" >
+{% endblock %}
+
+{% block content %}
+<div id="container" style="width:100%; height:400px;"></div>
+{% endblock %}
+
+<script type = "text/javascript">
+{% block javascript %}
+	$('#daterange').daterangepicker({ 
+	    format: 'YYYY-MM-DD',
+	    startDate: moment().startOf('month'), 
+	    endDate: moment().endOf('month') 
+	});
+
+	var picker = $('#daterange').data('daterangepicker');
+
+	picker.setStartDate(moment().startOf('month'));
+	picker.setEndDate(moment().endOf('month'));
+
+	loadChart(picker, {{i}});
+
+
+	$('#daterange').on('apply.daterangepicker', function(ev, picker) {
+	    loadChart(picker, {{i}});
+	});
+{% endblock %}
+</script>

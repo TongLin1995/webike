@@ -7,3 +7,5 @@ dbcredentials.txt
 .pydevproject
 *.png
 nohup.out
+instance
+blizzard/static

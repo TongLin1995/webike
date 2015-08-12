@@ -18,14 +18,15 @@ from trajectory import trajectoryClean
 
 builtins.unicode = str
 
-app = Flask(__name__)
+app = Flask(__name__, instance_relative_config=True)
+app.config.from_object('config')
+app.config.from_pyfile('config.py')
 
 SECRET_KEY = "yeah, not actually a secret"
 
 app.config.from_object(__name__)
 
 app.config["APPLICATION_ROOT"] = "/webike"
-
 login_manager = LoginManager()
 
 login_manager.login_view = "login"
@@ -38,7 +39,7 @@ login_manager.setup_app(app)
 
 @app.before_request
 def db_connect():
-    g.dbc = databaseConnector()
+    g.dbc = databaseConnector(app)
 
 
 @app.teardown_request
@@ -94,6 +95,13 @@ def login():
     else:
         return render_template("auth.html", fail="false")
 
+@app.context_processor
+def inject_globals():
+    return dict(
+        i           = current_user.imei,
+        name        = current_user.name,
+        assets_path = app.config['ASSETS_PATH']
+    )
 
 @app.route("/logout")
 @login_required
@@ -107,11 +115,24 @@ def logout():
 def analyzer():
     return render_template('index.html', i=current_user.imei, name=current_user.name)
 
+##### New Dashboard #####
 @app.route('/dashboard', methods=['GET'])
 @login_required
 def dashboard():
-    return render_template('dashboard.html', i=current_user.imei, name=current_user.name)
+    return render_template('dashboard/distance.html')
 
+@app.route('/dashboard/trips', methods=['GET'])
+@login_required
+def trips():
+    return render_template('dashboard/trips.html')
+
+@app.route('/dashboard/soc', methods=['GET'])
+@login_required
+def soc():
+    return render_template('dashboard/soc.html')
+##### end of New Dashboard #####
+
+##### AJAX calls - Old Website #####
 @app.route('/plotTripsOnDay', methods=['GET'])
 @login_required
 def dph():
@@ -216,7 +237,6 @@ def tripCoords():
     dt = request.args.get('date').split("/")  # also accepted in URL, but defaults to 1
     curdate = datetime(int(dt[2].replace("\"", "")), int(dt[0]), int(dt[1].replace("\"", "")))
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
-    #longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps, isAccurate, comments, tripIDs = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
     longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
     return Response(json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps, "isAccurate":[], "comments":[], "tripIDs":[]}), mimetype='application/json')
 
@@ -245,4 +265,4 @@ def socEstimation():
 ########### END of NEW APIs ###########
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, host="blizzard.cs.uwaterloo.ca")
+    app.run(debug=app.config["DEBUG"], port=app.config["PORT"], host=app.config["HOSTNAME"])
