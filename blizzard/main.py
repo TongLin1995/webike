@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, flash, redirect, url_for
 from flask import render_template
 from flask.ext.security import login_required, login_user
-from flask.ext.login import (LoginManager, current_user, login_required,
+from flask.ext.login import (LoginManager, current_user, login_required, 
                              login_user, logout_user, UserMixin, confirm_login, fresh_login_required)
 #!/usr/bin/env python2
 from datetime import datetime, timedelta
@@ -86,8 +86,8 @@ def login():
             uid = hashlib.sha256(imei.encode('utf-8')).hexdigest()
             u = User(imei, name, password, uid)
             USERS[uid] = u
-            login_user(u)
-            return redirect(url_for("analyzer"))
+            login_user(u, remember=True)
+            return redirect(url_for('dashboard'))
         else:
             return redirect(url_for("login") + "?failure=true")
     elif request.method == "GET" and request.args.get("failure"):
