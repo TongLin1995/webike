@@ -52,7 +52,7 @@
         <div id="page-wrapper">
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Dashboard <small>for {{name}}</small></h1>
+                    <h1 class="page-header">Dashboard <small>for {{current_user.name}}</small></h1>
                 </div>
                 <!-- /.col-lg-12 -->
             </div>
@@ -135,8 +135,6 @@
 
     <!-- datatables -->
     <script src="https://cdn.datatables.net/1.10.7/js/jquery.dataTables.min.js"></script>
-
-    <script src="{{assets_path}}/js/charts.js"></script>
 
     <script type = "text/javascript">
         $(document).ready(function() {

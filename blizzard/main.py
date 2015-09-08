@@ -98,9 +98,11 @@ def login():
 @app.context_processor
 def inject_globals():
     return dict(
-        i           = current_user.imei,
-        name        = current_user.name,
-        assets_path = app.config['ASSETS_PATH']
+        # Looks up where assets (js, css) files are stored in system
+        # blizzard is under ~/public_html
+        assets_path = app.config['ASSETS_PATH'],
+        # Ajax requests are routed under /webike on blizzard
+        url_ext = app.config['AJAX_URL_EXT']
     )
 
 @app.route("/logout")

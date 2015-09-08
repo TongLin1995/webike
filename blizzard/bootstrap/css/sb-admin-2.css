@@ -373,12 +373,12 @@ table.dataTable thead .sorting:after {
 }
 
 .voltage-heading:hover {
-    background-color: #ec971f;
+    background-color: #c9302c;
     cursor: pointer;
 }
 
 .soc-heading:hover {
-    background-color: #c9302c;
+    background-color: #ec971f;
     cursor: pointer;
 }
 

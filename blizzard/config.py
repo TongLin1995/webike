@@ -10,4 +10,6 @@ DB_PORT = 3306
 DB_NAME = "webike"
 DB_CREDENTIALS_PATH = "/u2/tcarpenter/webikewebsite/blizzard/dbcredentials.txt"
 
+# URLs
 ASSETS_PATH = "/~sensordc/bootstrap"
+AJAX_URL_EXT = "/webike"

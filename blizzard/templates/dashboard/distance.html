@@ -10,22 +10,73 @@
 
 <script type = "text/javascript">
 {% block javascript %}
-	$('#daterange').daterangepicker({ 
-	    format: 'YYYY-MM-DD',
-	    startDate: moment().startOf('month'), 
-	    endDate: moment().endOf('month') 
-	});
+    $('#daterange').daterangepicker({ 
+        format: 'YYYY-MM-DD',
+        startDate: moment().startOf('month'), 
+        endDate: moment().endOf('month') 
+    });
 
-	var picker = $('#daterange').data('daterangepicker');
+    var picker = $('#daterange').data('daterangepicker');
 
-	picker.setStartDate(moment().startOf('month'));
-	picker.setEndDate(moment().endOf('month'));
+    picker.setStartDate(moment().startOf('month'));
+    picker.setEndDate(moment().endOf('month'));
 
-	loadChart(picker, {{i}});
+    loadChart(picker);
 
+    $('#daterange').on('apply.daterangepicker', function(ev, picker) {
+        loadChart(picker);
+    });
 
-	$('#daterange').on('apply.daterangepicker', function(ev, picker) {
-	    loadChart(picker, {{i}});
-	});
+    /**
+     * Generates the distance highcharts using date from picker, and user imei
+     */
+    function loadChart(picker) {
+        var start = picker.startDate.format('MM/DD/YYYY');
+        var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
+        var url = "{{url_ext}}" + "/distanceVsDay?imei=" + current_user.imei + "&s=" + start + "&nd=" + numdays;
+        $.ajax({
+            url: url
+        }).success(function(data) {
+            $('#container').highcharts({
+                credits: {
+                    enabled: false
+                },
+                chart: {
+                    type: 'column',
+                    zoomType: 'x'
+                },
+                title: {
+                    text: 'Distance Travelled per Day'
+                },
+                xAxis: {
+                    categories: data.xAxis
+                },
+                yAxis: {
+                    min: 0,
+                    title: {
+                        text: 'Distance in km'
+                    }
+                },
+                legend: {
+                    reversed: true
+                },
+                plotOptions: {
+                    series: {
+                        stacking: 'normal'
+                    }
+                },
+                series: [{
+                    name: 'CDF',
+                    data: data.cummulative,
+                    color: '#c3c6c0',
+                    visible: false
+                  },
+                  {
+                    name: 'Distance per day',
+                    data: data.distance
+                }]
+            });
+        });
+    }
 {% endblock %}
 </script>

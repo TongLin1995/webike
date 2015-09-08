@@ -18,9 +18,51 @@ $('#singleDateRange').daterangepicker({
 
 var singlePicker = $('#singleDateRange').data('daterangepicker');
 $('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
-    loadSOCChart(singlePicker, {{i}});
+    loadSOCChart(singlePicker);
 });
 
-loadSOCChart(singlePicker, {{i}});
+loadSOCChart(singlePicker);
+
+function loadSOCChart(picker) {
+    $('#soc-container').hide();
+    $('.dots-loader').css("display", "block");
+
+    Highcharts.setOptions({
+        global: {
+            timezoneOffset: 4 * 60
+        }
+    });
+
+    var start = picker.startDate.format('MM/DD/YYYY');
+    var numdays = Math.round((picker.endDate - picker.startDate)/(24 * 60 * 60 * 1000));
+    var url = "{{url_ext}}" + "/socEstimation?imei=" + {{current_user.imei}} + "&s=" + start + "&nd=" + numdays;
+    $.ajax({
+        url: url
+    }).success(function(data) {
+
+        $('.dots-loader').hide();
+        $('#soc-container').show();
+
+        // Create the chart
+        $('#soc-container').highcharts('StockChart', {
+            credits: {
+                enabled: false
+            },
+            rangeSelector: {
+                enabled: false
+            },
+            yAxis: {
+                title: {
+                    text: 'SOC Estimation (%)'
+                }
+            },
+
+            series: [{
+                name: 'Temperature',
+                data: data.yAxis
+            }]
+        });
+    });
+}
 {% endblock %}
 </script>
