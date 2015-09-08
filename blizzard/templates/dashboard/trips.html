@@ -87,7 +87,7 @@ function mapTrips(datatable, picker, imei) {
     $('.dots-loader').css("display", "block");
 
     var date = picker.startDate.format('MM/DD/YYYY');
-    var url = "{{url_ext}}" + "/tripCoords?imei=" + {{current_user.imei}} + "&date=" + date;
+    var url = "{{url_ext}}/tripCoords?imei=" + {{current_user.imei}} + "&date=" + date;
 
     $.ajax({
         url: url
@@ -191,7 +191,7 @@ function addClickToSave(imei, datatable) {
         var tr = $(this).closest('tr');
         var rowIndex = datatable.row( tr[0] ).index();
         
-        var url = "{{url_ext}}" + "/updateTripComments";
+        var url = "{{url_ext}}/updateTripComments";
 
         var jqxhr = $.post( url, { imei: imei, id: tripID, isAccurate: $isAccurate.prop('checked'), comment: $comment.val() })
           .done(function() {
