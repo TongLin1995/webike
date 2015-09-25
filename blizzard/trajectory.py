@@ -154,8 +154,12 @@ def totalDistance(dist):
 def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
     curDate = datetime(syear, smonth, sday, 0, 0, 0)
     endDate = datetime(syear, smonth, sday, 23, 59, 59)
-    tripDetector = TripDetection()
-    tripStartTimes, tripEndTimes = tripDetector.detect_trips(dbc, imei, curDate, endDate)
+    tripStartTimes = []
+    tripEndTimes = []
+    query = "select start_time, end_time from trip{0} where start_time >= \"{1}\" and start_time <= \"{2}\"".format(imei, curDate, endDate)
+    for record in dbc.SQLSelectGenerator(query):
+        tripStartTimes.append(record[0])
+        tripEndTimes.append(record[1])
 
     return get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes)
 
