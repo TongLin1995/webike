@@ -1,5 +1,5 @@
 from math import pow, sqrt
-from parameter import Parameter
+from Parameter import Parameter
 from Data import Data
 import trajectory
 
@@ -58,12 +58,10 @@ class TripDetection:
             # If trip has not started we check current and
             if not self.trip_started:
                 if not self.charging_currents.max_limit_reached() and self.gyroscopes.max_limit_reached():
-                    print("trip started:", record[self.time_db])
                     self.start_trip(self.gyroscopes.get_min_time_over_limit())
             # Case when trip has started
             else:
                 if self.charging_currents.max_limit_reached() or not self.gyroscopes.max_limit_reached():
-                    print("trip ended:", record[self.time_db])
                     self.end_trip(record[self.time_db])
         self.validate_all_trips(dbc,imei)
         return self.start_times, self.end_times

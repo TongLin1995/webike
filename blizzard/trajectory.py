@@ -92,7 +92,6 @@ def gpsSimplification(lon, lat, stamps, beta):
 
     # while there is more than one connected component keep joining component together
     while(len(cc) > 1):
-        barTemporary = []
         cc = increaseCC(cc, maxi, mini, distances)
         barTemporary, cc = joinCC(cc, distances)
         bar.extend(barTemporary)
@@ -156,12 +155,21 @@ def trajectoryClean(dbc, imei, beta, syear, smonth, sday):
     endDate = datetime(syear, smonth, sday, 23, 59, 59)
     tripStartTimes = []
     tripEndTimes = []
-    query = "select start_time, end_time from trip{0} where start_time >= \"{1}\" and start_time <= \"{2}\"".format(imei, curDate, endDate)
+    ids = []
+    isAccurateList = []
+    comments = []
+    query = "select start_time, end_time, id, isAccurate, comments from trip{0} where start_time >= \"{1}\" and start_time <= \"{2}\"".format(imei, curDate, endDate)
     for record in dbc.SQLSelectGenerator(query):
         tripStartTimes.append(record[0])
         tripEndTimes.append(record[1])
-
-    return get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes)
+        ids.append(record[2])
+        isAccurateList.append(record[3])
+        if record[4] is not None:
+            comments.append(record[4])
+        else:
+            comments.append("")
+    newLon, newLat, startStr, endStr, dist, totalTime, stampsStr = get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes)
+    return newLon, newLat, startStr, endStr, dist, totalTime, stampsStr, ids, isAccurateList, comments
 
 
 def get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes):
@@ -195,6 +203,8 @@ def get_trajectory_information(dbc, imei, beta, tripStartTimes, tripEndTimes):
         for i in range(len(newLon)):
             if newLon[i] is not None and newLat[i] is not None:
                 dist.append(totalDistance(haversineDistance(newLon[i], newLat[i])))
+            else:
+                dist.append(None)
 
         # calculating total time of every trip detected
         totalTime = []

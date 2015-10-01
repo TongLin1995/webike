@@ -46,7 +46,7 @@
 
 <script type = "text/javascript">
 {% block javascript %}
-$('#singleDateRange').daterangepicker({ 
+$('#singleDateRange').daterangepicker({
     format: 'YYYY-MM-DD',
     singleDatePicker: true,
     showDropdowns: true
@@ -108,7 +108,7 @@ function mapTrips(datatable, picker, imei) {
         var markers = [];
 
         // populate lats and longs
-        var numTrips = data.stamps.length
+        var numTrips = data.stamps.length;
         var lats = data.lats;
         var longs = data.longs;
 
@@ -117,39 +117,41 @@ function mapTrips(datatable, picker, imei) {
         var bounds = new google.maps.LatLngBounds();
 
         for (var k = 0; k < numTrips; k++) {
-            var flightPlanCoordinates = [];
-            var len = lats[k].length - 1;
-            for (var i = 0; i < len; i++) {
-                flightPlanCoordinates.push(new google.maps.LatLng(lats[k][i], longs[k][i]));
+            if (lats[k] != null) {
+                var flightPlanCoordinates = [];
+                var len = lats[k].length - 1;
+                for (var i = 0; i < len; i++) {
+                    flightPlanCoordinates.push(new google.maps.LatLng(lats[k][i], longs[k][i]));
 
-                // set bounds
-                bounds.extend(new google.maps.LatLng(lats[k][i], longs[k][i]));
-                map.fitBounds(bounds);
+                    // set bounds
+                    bounds.extend(new google.maps.LatLng(lats[k][i], longs[k][i]));
+                    map.fitBounds(bounds);
+                }
+
+                var flightPath = new google.maps.Polyline({
+                    path: flightPlanCoordinates,
+                    geodesic: true,
+                    strokeColor: colors[k],
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+
+                flightPath.setMap(map);
+
+                // Start of trip
+                markers.push(new google.maps.Marker({
+                    position: new google.maps.LatLng(lats[k][0], longs[k][0]),
+                    map: map,
+                    title: 'Start of Trip #' + (k + 1)
+                }));
+
+                // End of trip
+                markers.push(new google.maps.Marker({
+                    position: new google.maps.LatLng(lats[k][len - 1], longs[k][len - 1]),
+                    map: map,
+                    title: 'End of Trip #' + (k + 1)
+                }));
             }
-
-            var flightPath = new google.maps.Polyline({
-                path: flightPlanCoordinates,
-                geodesic: true,
-                strokeColor: colors[k],
-                strokeOpacity: 1.0,
-                strokeWeight: 2
-            });
-
-            flightPath.setMap(map);
-
-            // Start of trip
-            markers.push(new google.maps.Marker({
-               position: new google.maps.LatLng(lats[k][0], longs[k][0]),
-               map: map,
-               title:'Start of Trip #' + (k+1)
-            }));
-
-            // End of trip
-            markers.push(new google.maps.Marker({
-               position: new google.maps.LatLng(lats[k][len-1], longs[k][len-1]),
-               map: map,
-               title:'End of Trip #' + (k+1)
-            }));
         }
 
         // tables
@@ -162,15 +164,27 @@ function mapTrips(datatable, picker, imei) {
         var isAccurate = data.isAccurate;
         var comments  = data.comments;
 
+        // Preprocessing data to display
+        for(var i = 0, l = distance.length; i < l; i++)
+        {
+            if(distance[i] == undefined || distance[i] == null)
+            {
+                distance[i] = "NA";
+            }
+            else
+            {
+                distance[i] = distance[i].toFixed(2);
+            }
+        }
         for (var i = 0; i < numTrips; i++) {
             tableRows.push([
-                null, // should be tripId[i]
-                startTime[i], 
-                endTime[i], 
-                tt[i].toFixed(2), 
-                distance[i].toFixed(2), 
-                true, // should be isAccurate[i]
-                '', // should be comments[i]
+                tripId[i], // tripId
+                startTime[i],
+                endTime[i],
+                tt[i].toFixed(2),
+                distance[i],
+                isAccurate[i], // should be isAccurate[i]
+                comments[i], // should be comments[i]
                 null
                 ]);
         }
@@ -190,7 +204,7 @@ function addClickToSave(imei, datatable) {
 
         var tr = $(this).closest('tr');
         var rowIndex = datatable.row( tr[0] ).index();
-        
+
         var url = "{{url_ext}}/updateTripComments";
 
         var jqxhr = $.post( url, { imei: imei, id: tripID, isAccurate: $isAccurate.prop('checked'), comment: $comment.val() })

@@ -1,7 +1,7 @@
 from flask import Flask, request, Response, flash, redirect, url_for
 from flask import render_template
 from flask.ext.security import login_required, login_user
-from flask.ext.login import (LoginManager, current_user, login_required, 
+from flask.ext.login import (LoginManager, current_user, login_required,
                              login_user, logout_user, UserMixin, confirm_login, fresh_login_required)
 #!/usr/bin/env python2
 from datetime import datetime, timedelta
@@ -239,8 +239,8 @@ def tripCoords():
     dt = request.args.get('date').split("/")  # also accepted in URL, but defaults to 1
     curdate = datetime(int(dt[2].replace("\"", "")), int(dt[0]), int(dt[1].replace("\"", "")))
     end = curdate + timedelta(hours=23, minutes=59, seconds=59)
-    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps = trajectoryClean(g.dbc, imei, 0.08, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
-    return Response(json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps, "isAccurate":[], "comments":[], "tripIDs":[]}), mimetype='application/json')
+    longs, lats, tripStartTimes, tripEndTimes, dist, totalTime, stamps, ids, isAccurateList, comments = trajectoryClean(g.dbc, imei, 0.04, int(dt[2].replace("\"", "")), int(dt[0].replace("\"", "")), int(dt[1]))
+    return Response(json.dumps({"lats": lats, "longs": longs, "start": tripStartTimes, "end": tripEndTimes, "d": dist, "ttime": totalTime, "stamps": stamps, "isAccurate": isAccurateList, "comments":comments, "tripIDs": ids}), mimetype='application/json')
 
 @app.route('/updateTripComments', methods=['POST'])
 @login_required
