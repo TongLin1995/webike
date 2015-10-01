@@ -1,5 +1,5 @@
 from math import pow, sqrt
-from Parameter import Parameter
+from parameter import Parameter
 from Data import Data
 import trajectory
 
