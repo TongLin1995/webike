@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">URAWear</string>
+    <string name="hello_round">Hello Round World!</string>
+    <string name="hello_square">Hello Square World!</string>
+    <string name="title_activity_main_activity2">MainActivity2Activity</string>
+    <string name="header">Leader board</string>
+</resources>
