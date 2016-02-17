@@ -1,0 +1,225 @@
+{% extends "dashboard.html" %}
+
+{% block filter %}
+<input type="text" class="form-control"  id="singleDateRange" placeholder="Choose date" aria-describedby="basic-addon1">
+{% endblock %}
+
+{% block content %}
+<div id="trips-container" style="width:100%; height:400px; display:none;"></div>
+{% endblock %}
+
+{% block table %}
+<!-- /.panel -->
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <i class="fa fa-bar-chart-o fa-fw"></i> Data
+    </div>
+    <!-- /.panel-heading -->
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-striped" id="datatable">
+                        <thead>
+                            <tr>
+                                <th>Trip #</th>
+                                <th>Start time</th>
+                                <th>End time</th>
+                                <th>Time Taken (mins)</th>
+                                <th>Distance (km)</th>
+                                <th>Accurate?</th>
+                                <th>Comments</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <!-- /.table-responsive -->
+            </div>
+            <!-- /.col-lg-8 (nested) -->
+        </div>
+        <!-- /.row -->
+    </div>
+    <!-- /.panel-body -->
+</div>
+{% endblock table %}
+
+<script type = "text/javascript">
+{% block javascript %}
+$('#singleDateRange').daterangepicker({
+    format: 'YYYY-MM-DD',
+    singleDatePicker: true,
+    showDropdowns: true
+});
+
+// Table
+var datatable = $('#datatable').DataTable({
+    "bJQueryUI": true,
+    "bFilter"  : false,
+    "columnDefs": [ { "targets": 7, "orderable": false } ],
+    "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+      if ( aData[5] == 1 ) {
+        $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'" checked>' );
+      } else {
+        $('td:eq(5)', nRow).html('<input type="checkbox" class="isAccurate" id="isAccurate_'+ aData[0] +'">' );
+      }
+
+      $('td:eq(6)', nRow).html('<input type="text" value="'+ aData[6] +'" id="comment_'+ aData[0] +'">' );
+
+      $('td:eq(7)', nRow).html('<button type="button" data-loading-text="Updating" class="btn btn-success btn-save-datatable" autocomplete="off" data="'+aData[0]+'">Save</button>');
+    },
+    "fnDrawCallback": function( oSettings ) {
+        addClickToSave({{current_user.imei}}, datatable); // add on click event to isExcluded radio button to trigger ajax request
+    }
+});
+
+var singlePicker = $('#singleDateRange').data('daterangepicker');
+$('#singleDateRange').on('apply.daterangepicker', function(ev, picker) {
+    mapTrips(datatable, singlePicker);
+});
+
+mapTrips(datatable, singlePicker);
+
+var colors = ["#504B4B", "#00FF00", "#0000FF", "#000000", "#FFFF00", "#00FFFF", "#FF00FF", "#FFE4C4", "#A52A2A", "#5F9EA0", "#FF7F50", "#DC143C", "#008B8B", "#B8860B", "#BDB76B", "#556B2F", "#483D8B", "#1E90FF"];
+function mapTrips(datatable, picker, imei) {
+
+    $('#trips-container').hide();
+    $('.dots-loader').css("display", "block");
+
+    var date = picker.startDate.format('MM/DD/YYYY');
+    var url = "{{url_ext}}/tripCoords?imei=" + {{current_user.imei}} + "&date=" + date;
+
+    $.ajax({
+        url: url
+    }).success(function(data) {
+
+        $('.dots-loader').hide();
+        $('#trips-container').show();
+        datatable.clear(); // remove all data from table
+
+        // init map
+        var mapOptions = {
+          zoom: 15,
+          mapTypeId: google.maps.MapTypeId.TERRAIN
+        };
+
+        var map = new google.maps.Map(document.getElementById('trips-container'), mapOptions);
+
+        var markers = [];
+
+        // populate lats and longs
+        var numTrips = data.stamps.length;
+        var lats = data.lats;
+        var longs = data.longs;
+
+        var centerLat = 43.472285;
+        var centerLong = -80.544858;
+        var bounds = new google.maps.LatLngBounds();
+
+        for (var k = 0; k < numTrips; k++) {
+            if (lats[k] != null) {
+                var flightPlanCoordinates = [];
+                var len = lats[k].length - 1;
+                for (var i = 0; i < len; i++) {
+                    flightPlanCoordinates.push(new google.maps.LatLng(lats[k][i], longs[k][i]));
+
+                    // set bounds
+                    bounds.extend(new google.maps.LatLng(lats[k][i], longs[k][i]));
+                    map.fitBounds(bounds);
+                }
+
+                var flightPath = new google.maps.Polyline({
+                    path: flightPlanCoordinates,
+                    geodesic: true,
+                    strokeColor: colors[k],
+                    strokeOpacity: 1.0,
+                    strokeWeight: 2
+                });
+
+                flightPath.setMap(map);
+
+                // Start of trip
+                markers.push(new google.maps.Marker({
+                    position: new google.maps.LatLng(lats[k][0], longs[k][0]),
+                    map: map,
+                    title: 'Start of Trip #' + (k + 1)
+                }));
+
+                // End of trip
+                markers.push(new google.maps.Marker({
+                    position: new google.maps.LatLng(lats[k][len - 1], longs[k][len - 1]),
+                    map: map,
+                    title: 'End of Trip #' + (k + 1)
+                }));
+            }
+        }
+
+        // tables
+        var tableRows = [];
+        var tripId = data.tripIDs;
+        var startTime = data.start;
+        var endTime   = data.end;
+        var tt        = data.ttime;
+        var distance  = data.d;
+        var isAccurate = data.isAccurate;
+        var comments  = data.comments;
+
+        // Preprocessing data to display
+        for(var i = 0, l = distance.length; i < l; i++)
+        {
+            if(distance[i] == undefined || distance[i] == null)
+            {
+                distance[i] = "NA";
+            }
+            else
+            {
+                distance[i] = distance[i].toFixed(2);
+            }
+        }
+        for (var i = 0; i < numTrips; i++) {
+            tableRows.push([
+                tripId[i], // tripId
+                startTime[i],
+                endTime[i],
+                tt[i].toFixed(2),
+                distance[i],
+                isAccurate[i], // should be isAccurate[i]
+                comments[i], // should be comments[i]
+                null
+                ]);
+        }
+
+        datatable.rows.add(tableRows).draw();
+      });
+}
+
+function addClickToSave(imei, datatable) {
+
+    $('.btn-save-datatable').click(function(){
+
+        var $btn = $(this).button('loading')
+        var tripID = $btn.attr("data")
+        var $isAccurate = $('#isAccurate_' + tripID);
+        var $comment = $('#comment_' + tripID);
+
+        var tr = $(this).closest('tr');
+        var rowIndex = datatable.row( tr[0] ).index();
+
+        var url = "{{url_ext}}/updateTripComments";
+
+        var jqxhr = $.post( url, { imei: imei, id: tripID, isAccurate: $isAccurate.prop('checked'), comment: $comment.val() })
+          .done(function() {
+            datatable.cell(rowIndex, 5).data($isAccurate.prop('checked')).draw();
+            datatable.cell(rowIndex, 6).data($comment.val()).draw();
+          })
+          .fail(function() {
+            alert( "Failed to update the trip info." );
+          });
+
+        return false;
+    });
+
+}
+
+{% endblock %}
+</script>
